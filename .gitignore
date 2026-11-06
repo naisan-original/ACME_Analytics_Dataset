@@ -14,5 +14,10 @@ __pycache__/
 # Too large for Git, and it pairs real company names with fictional commercial data.
 output/
 
+output.building/
+
 # Facilitator material holds the hidden truth and is never part of the dataset.
 facilitator/
+
+# Local screenshots of tools under test.
+Screenshots/

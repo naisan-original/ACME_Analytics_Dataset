@@ -31,8 +31,24 @@
 
 - **`region` uses `NA` for North America.** Many tools read `NA` as null by default, so check it on import. In pandas, use `keep_default_na=False, na_values=[""]`.
 - **`user_usage_month` is a sample.** Multiply measures by `sample_weight` to estimate full-population totals.
-- **Every satellite table joins directly to the central fact.**
+- **Read "How the tables join" below before you accept automatically detected joins.**
 - **Company names contain commas,** so use a real CSV parser.
+
+## How the tables join
+
+Four dimensions are shared by four fact tables. Not every table joins directly to the central fact.
+
+| Fact table | One row per | Joins to |
+|---|---|---|
+| `fct_account_product_month` | Account, product and month | `dim_account`, `dim_product`, `dim_month` (`month_id`), `dim_employee` (`ae_employee_id` and `csm_employee_id`) |
+| `user_usage_month` | User, product and month | `dim_account`, `dim_product`, `dim_month` (`month_id`) |
+| `contracts` | Contract | `dim_account`, `dim_product`, `dim_month` (`start_month_id`), `dim_employee` (`ae_employee_id`) |
+| `touchpoints` | Interaction | `dim_account`, `dim_month` (`month_id`), `dim_employee` (`employee_id`) |
+
+- **Do not join fact tables to each other row by row.** It repeats rows and inflates totals. Total each table to a shared level first, such as account and month, then compare.
+- **If you must link them:** `user_usage_month` matches the central fact on account, product and month together. A contract is active in a month when `start_month_id` <= month <= `end_month_id`, and `end_month_id` can fall after the data window. `touchpoints` has no product and includes prospects, so it has no clean link to the central fact.
+- **Do not join these columns to `dim_month`:** `customer_since_month_id` and `churn_month_id` in `dim_account`, and `hire_month_id` and `termination_month_id` in `dim_employee`. They are descriptive dates and mostly blank. A second route to `dim_month` can make a fiscal year filter apply to the wrong date. Automatic join detection may suggest them.
+- **ARR is a monthly snapshot.** Do not sum it across months. Use the last month of the period.
 
 ## License
 

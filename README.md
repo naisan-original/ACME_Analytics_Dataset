@@ -41,7 +41,8 @@ facilitator key from the generated data.
 
 - `region` uses the value `NA` for North America, as the spec requires. Many tools, including pandas
   by default, read `NA` as null, so check this on import.
-- `fct_account_product_month` is the central table. Every other table joins directly to it.
+- Four fact tables share four dimensions, and fact tables should not be joined to each other row by row.
+  See [How the tables join](DATASET_README.md#how-the-tables-join).
 - `user_usage_month` is a sample. Use `sample_weight` to estimate population totals.
 
 ## License

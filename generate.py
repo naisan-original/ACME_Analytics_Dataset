@@ -1,6 +1,10 @@
 """Generate the ACME Analytics dataset: python generate.py --config config.yaml"""
 import argparse
+import copy
+import os
+import shutil
 import time
+from pathlib import Path
 
 import numpy as np
 
@@ -12,6 +16,37 @@ from acme.metrics import arr_matrix, kpi_table
 from acme.products import dim_product
 
 
+BUILD_DIR = Path("output.building")
+
+
+def staging_config(cfg):
+    """Same config, with every output path pointed at the build folder."""
+    staged = copy.deepcopy(cfg)
+    staged["paths"].update(
+        output_dir=str(BUILD_DIR / "lite"),
+        dictionary=str(BUILD_DIR / "data_dictionary.md"),
+        facilitator_dir=str(BUILD_DIR / "facilitator"),
+    )
+    return staged
+
+
+def publish(cfg):
+    """Swap the finished build into place, so nobody can pick up a half-written dataset."""
+    final = Path(cfg["paths"]["output_dir"])
+    final.parent.mkdir(parents=True, exist_ok=True)
+    if final.exists():
+        final.rename(BUILD_DIR / "lite.previous")
+    (BUILD_DIR / "lite").rename(final)
+    os.replace(BUILD_DIR / "data_dictionary.md", cfg["paths"]["dictionary"])
+    facilitator = Path(cfg["paths"]["facilitator_dir"])
+    facilitator.mkdir(parents=True, exist_ok=True)
+    for path in (BUILD_DIR / "facilitator").iterdir():
+        os.replace(path, facilitator / path.name)
+    # The answer key quotes the data, so it must be rebuilt for each new dataset.
+    (facilitator / "answer_key.md").unlink(missing_ok=True)
+    shutil.rmtree(BUILD_DIR)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="config.yaml")
@@ -20,6 +55,8 @@ def main():
 
     cfg = load_config(args.config)
     calendar = build_calendar(cfg)
+    shutil.rmtree(BUILD_DIR, ignore_errors=True)
+    staged = staging_config(cfg)
 
     accounts = accounts_module.build(cfg)
     print(f"accounts: {len(accounts):,} ({int(accounts['is_fictional'].sum()):,} fictional)", flush=True)
@@ -50,11 +87,13 @@ def main():
         "contracts": contracts_module.build(cfg, customers, accounts, employees, calendar),
         "touchpoints": touchpoints.run(cfg, customers, accounts, employees, ae, csm, disrupted, arr, calendar),
     }
-    counts = export.write_tables(cfg, tables)
-    export.write_dictionary(cfg, counts)
-    export.write_facilitator(cfg, accounts, is_ai, customers)
+    counts = export.write_tables(staged, tables)
+    export.write_dictionary(staged, counts)
+    export.write_facilitator(staged, accounts, is_ai, customers)
+    publish(cfg)
     print({name: f"{count:,}" for name, count in counts.items()})
     print(f"total rows: {sum(counts.values()):,} in {time.time() - started:.0f}s")
+    print("Next: uv run python validate.py, then uv run python tools/answer_key.py")
 
 
 if __name__ == "__main__":

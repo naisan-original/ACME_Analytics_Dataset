@@ -177,7 +177,19 @@ DICTIONARY = {
 
 def write_dictionary(cfg, row_counts):
     lines = ["# ACME Analytics dataset: data dictionary", "", f"synthetic_notice: {cfg['synthetic_notice']}", ""]
-    lines += ["Star schema: every satellite joins directly to `fct_account_product_month`.", "",
+    lines += ["Four fact tables (`fct_account_product_month`, `user_usage_month`, `contracts`, `touchpoints`) share "
+              "four dimensions (`dim_account`, `dim_product`, `dim_month`, `dim_employee`).", "",
+              "## Joins", "",
+              "- Each fact table joins to its dimensions through the FK columns listed below. Contracts join to "
+              "`dim_month` on `start_month_id`.",
+              "- Do not join fact tables to each other row by row, because it inflates totals. Total each one to a "
+              "shared level first.",
+              "- `user_usage_month` matches the central fact on account, product and month together. A contract is "
+              "active in a month when `start_month_id` <= month <= `end_month_id`. `touchpoints` has no clean link "
+              "to the central fact.",
+              "- Do not join `customer_since_month_id`, `churn_month_id`, `hire_month_id` or `termination_month_id` "
+              "to `dim_month`. They are descriptive dates and mostly blank.",
+              "- ARR is a monthly snapshot. Do not sum it across months.", "",
               "## Metric definitions", "",
               "- GRR: (ARR from accounts active 12 months ago, minus churn and contraction) / their ARR 12 months ago, capped at 100%.",
               "- NDR: the same cohort including expansion.",
