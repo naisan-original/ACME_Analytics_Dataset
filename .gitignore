@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+
+# Secrets
+.env
+.env.*
+
+# Generated data: rebuild with `uv run python generate.py --config config.yaml`.
+# Too large for Git, and it pairs real company names with fictional commercial data.
+output/
+
+# Facilitator material holds the hidden truth and is never part of the dataset.
+facilitator/
