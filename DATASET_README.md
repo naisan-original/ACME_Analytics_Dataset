@@ -33,3 +33,9 @@
 - **`user_usage_month` is a sample.** Multiply measures by `sample_weight` to estimate full-population totals.
 - **Every satellite table joins directly to the central fact.**
 - **Company names contain commas,** so use a real CSV parser.
+
+## License
+
+This dataset is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), Copyright (c) 2026 Naisan. The full text is in `LICENSE-DATA`. Credit: "ACME Analytics Synthetic Dataset by Naisan, https://github.com/naisan-original/ACME_Analytics_Dataset".
+
+The license covers this dataset only. It grants no rights to any company name or trademark, and it does not imply any connection with any company.

@@ -43,3 +43,12 @@ facilitator key from the generated data.
   by default, read `NA` as null, so check this on import.
 - `fct_account_product_month` is the central table. Every other table joins directly to it.
 - `user_usage_month` is a sample. Use `sample_weight` to estimate population totals.
+
+## License
+
+- **Code:** [MIT](LICENSE).
+- **Dataset** (the generated CSVs and the data dictionary): [CC BY 4.0](LICENSE-DATA), Copyright (c) 2026 Naisan.
+- **Source lists in `sources/`:** Wikidata (CC0) and exchange listings (ODC-PDDL-1.0). See [sources/README.md](sources/README.md).
+
+These licenses cover this project's own work only. They grant no rights to any company name or
+trademark, and they do not imply any connection with any company.
