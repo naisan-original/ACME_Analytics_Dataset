@@ -1,0 +1,205 @@
+# Every tunable parameter for the ACME dataset. Section numbers refer to ACME_DATASET_SPEC.md.
+seed: 20261106
+
+window:
+  start_year: 2020
+  start_month: 11
+  months: 72
+
+paths:
+  company_sources: [sources/wikidata_listed_companies.csv, sources/us_listed_companies.csv]
+  output_dir: output/lite
+  dictionary: output/data_dictionary.md
+  facilitator_dir: facilitator
+
+synthetic_notice: "All commercial relationships, usage, and notes are fictional. Company names are used for realism only."
+
+# Section 3
+accounts:
+  total: 15000
+  region_counts: {US: 9000, Canada: 200, EMEA: 3200, APAC: 2000, LATAM: 600}
+  band_counts: {"$50B+": 500, "$10-50B": 1500, "$2-10B": 3500, "$200M-2B": 9500}
+  segment_by_band: {"$50B+": Strategic, "$10-50B": Strategic, "$2-10B": Enterprise, "$200M-2B": Upper Mid-Market}
+  us_west_share: 0.35
+  # Universe mix before customer selection weights are applied.
+  industry_weights:
+    High Tech: 0.20
+    Financial Services: 0.13
+    Healthcare & Life Sciences: 0.11
+    Retail & CPG: 0.11
+    Manufacturing: 0.14
+    Energy & Utilities: 0.07
+    Telecom & Media: 0.06
+    Transportation & Logistics: 0.06
+    Public Sector & Education: 0.04
+    Professional Services: 0.08
+
+# Section 4
+growth:
+  starting_customers: 25
+  fy_end_customers: [120, 450, 1200, 2400, 3600, 4500]
+  expected_annual_churn_by_fy: [0.06, 0.06, 0.06, 0.07, 0.09, 0.13]
+  starting_customer_grower_share: 0.459
+  high_tech_new_logo_share: [0.35, 0.28, 0.21, 0.16, 0.30, 0.12]
+  segment_new_logo_mix:
+    - {Strategic: 0.22, Enterprise: 0.38, Upper Mid-Market: 0.40}
+    - {Strategic: 0.18, Enterprise: 0.37, Upper Mid-Market: 0.45}
+    - {Strategic: 0.14, Enterprise: 0.36, Upper Mid-Market: 0.50}
+    - {Strategic: 0.10, Enterprise: 0.35, Upper Mid-Market: 0.55}
+    - {Strategic: 0.08, Enterprise: 0.32, Upper Mid-Market: 0.60}
+    - {Strategic: 0.08, Enterprise: 0.32, Upper Mid-Market: 0.60}
+  land_acv:
+    Strategic: {low: 150000, high: 1000000}
+    Enterprise: {low: 40000, high: 200000}
+    Upper Mid-Market: {low: 15000, high: 60000}
+  land_acv_scale: [0.457, 0.543, 0.619, 0.764, 0.723, 0.554]
+  two_product_land_share: 0.30
+  land_product_weights: {P2: 0.55, P1: 0.30, P3: 0.10, P4: 0.05}
+  strategic_multi_year_share: 0.10
+
+# Section 5
+pricing:
+  list_price: 110        # above the top net tier, so list is never below net
+  tiers:
+    - {min_seats: 1, max_seats: 49, low: 80, high: 100}
+    - {min_seats: 50, max_seats: 249, low: 45, high: 60}
+    - {min_seats: 250, max_seats: 999, low: 28, high: 35}
+    - {min_seats: 1000, max_seats: 4999, low: 20, high: 25}
+    - {min_seats: 5000, max_seats: 1000000, low: 15, high: 18}
+  deal_noise: 0.10
+  healthy_uplift: [0.0, 0.05]
+  at_risk_discount: [0.05, 0.15]
+
+# Sections 6.1 and 6.2
+renewal:
+  logo_churn: {Strategic: 0.05, Enterprise: 0.06, Upper Mid-Market: 0.06}
+  contraction_rate: 0.06
+  contraction_cut: [0.10, 0.40]
+  grower_share: 0.15
+  grower_growth: [0.30, 1.00]
+  grower_age_years: [1, 3]
+  expansion_prob: [0.60, 0.60, 0.58, 0.55, 0.55, 0.55]
+  expansion_size: [0.05, 0.35]
+  expansion_scale: [0.689, 1.711, 1.235, 1.422, 1.491, 1.536]
+  loss_multiplier_by_fy: [2.7, 1.384, 1.326, 1.174, 0.9, 0.984]
+  cross_sell_prob: [0.37, 0.37, 0.37, 0.37, 0.37, 0.37]
+  cross_sell_size: [0.15, 0.45]
+  cross_sell_weights: {P3: 0.45, P4: 0.25, P1: 0.20, P2: 0.10}
+
+utilization:
+  expand: [0.35, 0.46]
+  flat: [0.21, 0.31]
+  at_risk: [0.11, 0.19]
+  ai_healthy: [0.40, 0.60]
+  monthly_noise: 0.02
+
+# Section 6.3
+ai_forward:
+  sub_industries: [Software, Internet & Platforms, Semiconductors]
+  conversion_rate: 1.0
+  sub_industry_selection_boost: 1.22
+  last_landing_month: 59
+  min_months_before_onset: 3
+  land_acv_multiplier: 1.534
+  pre_pivot_churn: 0.03
+  pre_pivot_expansion_prob: 0.85
+  pre_pivot_expansion: [0.30, 0.80]
+  pre_pivot_cross_sell_prob: 0.45
+  onset_start: 42        # Q3 FY24
+  onset_end: 65          # Q2 FY26
+  onset_beta: [1.1, 3.0]
+  pivot_months: [6, 16]
+  start_api_share: 0.05
+  end_api_share: 0.93
+  logo_churn_lag: [6, 12]
+  logo_churn_prob: 0.74
+  analytics_only_exit_share: 0.65
+  analytics_only_exit_prob: 0.9
+  analytics_ui_drop: [0.70, 0.80]
+  analytics_seat_cut: [0.30, 0.55]
+  analytics_churn_prob: 0.85
+  engine_work_multiplier: [2.0, 3.0]
+  engine_seat_cut: [0.0, 0.15]
+  transformation_seat_cut: [0.10, 0.30]
+  ml_seat_change: [-0.30, 0.20]
+
+# Section 6.1
+usage:
+  baseline_api_share_by_fy: [0.03, 0.045, 0.06, 0.08, 0.105, 0.13]
+  api_share_noise: 0.25
+  active_noise: 0.5
+  hours_log_mean: 0.85
+  hours_user_sigma: 0.70
+  hours_month_sigma: 0.75
+  session_hours: 1.1
+  heavy_user_hours: 40
+  near_full_time_hours: 120
+  weekly_active_hours: 10
+  work_units_per_hour: {P1: 2.0, P2: 6.0, P3: 25.0, P4: 1.0}
+  api_calls_per_work_unit: {P1: 40, P2: 25, P3: 12, P4: 150}
+  service_account_api_share: 0.88
+  service_account_capacity: 6000
+  sample_rate: 0.05
+  min_sampled_users: 3
+
+# Section 2.5
+people:
+  ae_fy_end: [3, 6, 12, 22, 38, 55]
+  csm_fy_end: [2, 4, 9, 18, 32, 50]
+  attrition_annual: 0.15
+  attrition_min_tenure_months: 3
+  leader_hire_months: {Sales Leader: [12, 34, 50], CS Leader: [20, 44]}
+  territory_weights_by_fy:
+    - {US-East: 0.60, US-West: 0.40, EMEA: 0.0, APAC: 0.0, LATAM: 0.0}
+    - {US-East: 0.45, US-West: 0.35, EMEA: 0.20, APAC: 0.0, LATAM: 0.0}
+    - {US-East: 0.35, US-West: 0.30, EMEA: 0.25, APAC: 0.10, LATAM: 0.0}
+    - {US-East: 0.32, US-West: 0.26, EMEA: 0.25, APAC: 0.12, LATAM: 0.05}
+    - {US-East: 0.32, US-West: 0.26, EMEA: 0.24, APAC: 0.13, LATAM: 0.05}
+    - {US-East: 0.32, US-West: 0.26, EMEA: 0.24, APAC: 0.13, LATAM: 0.05}
+  quota_per_ae: [600000, 1500000]
+
+# Section 7
+red_herrings:
+  emea:
+    start_month: 48      # FY25 Q1
+    end_month: 56        # FY25 Q3
+    new_logo_drop: 0.20
+    extra_contraction: 0.04
+  rep_turnover:
+    territory: US-West
+    start_month: 50
+    end_month: 55
+    ae_leavers: 5
+    csm_leavers: 3
+    extra_churn: 0.035
+    risk_window_months: 12
+    touch_dip: 0.45
+    touch_dip_months: 6
+
+# Sections 2.8 and 6.4
+touchpoints:
+  customer_touches_per_year: [4, 10]
+  full_touch_arr: 300000
+  prospect_share_with_touches: 0.55
+  prospect_touches_per_year: [0, 3]
+  prospect_first_month: 12
+  ai_language_seed_share: 0.05
+  ai_theme_prob_max: 0.60
+  sentiment_lead_months: 6
+
+tech_signals:
+  general: [Snowflake, dbt, Kubernetes, Databricks, Tableau, Power BI, Airflow, Kafka, Terraform, Salesforce, ServiceNow, SAP, AWS, Azure, GCP, Looker, Fivetran, Spark]
+  ai: [LLM Ops, Vector DB, RAG, Agent Frameworks, GPU Clusters, Model Serving, Prompt Engineering, MLflow, LangChain, AI Copilots]
+  count_range: [3, 7]
+  ai_topic_prob: {ai_forward: 0.70, high_tech: 0.32, other: 0.08}
+
+# Section 8
+targets:
+  customers: [120, 450, 1200, 2400, 3600, 4500]
+  arr_low: [8, 35, 100, 200, 290, 350]
+  arr_high: [12, 45, 130, 250, 350, 450]
+  grr: [94, 93, 93, 91, 87, 85]
+  ndr: [135, 130, 126, 120, 110, 105.5]
+  tolerance_pts: 2
+  rest_min_grr: 91
+  rest_min_ndr: 115
