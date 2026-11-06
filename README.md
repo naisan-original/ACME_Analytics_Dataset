@@ -9,8 +9,8 @@ The build spec is [ACME_DATASET_SPEC.md](ACME_DATASET_SPEC.md).
 
 ## Status
 
-The generator is complete. `validate.py` passes 61 of 62 checks. The one miss is FY23 NDR, 0.2 points
-outside its tolerance. It exits non-zero until that is resolved.
+The generator is complete. `validate.py` passes 69 of 71 checks and exits non-zero because of the two
+misses: FY22 NDR and FY23 NDR are each 0.5 points outside the 2-point tolerance.
 
 ## Setup
 

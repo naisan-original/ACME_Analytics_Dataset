@@ -53,11 +53,18 @@ def main():
           "FY26 GRR": round(retention(arr, 5, industries == name)[0], 1)} for name in np.unique(industries)]
     ).sort_values("FY26 GRR")
     regions = accounts["region"].to_numpy()
+    plain = industries != "High Tech"
     by_region = pd.DataFrame(
         [{"Region": name, "FY24 GRR": round(retention(arr, 3, regions == name)[0], 1),
           "FY25 GRR": round(retention(arr, 4, regions == name)[0], 1),
-          "FY26 GRR": round(retention(arr, 5, regions == name)[0], 1)} for name in np.unique(regions)]
+          "FY26 GRR": round(retention(arr, 5, regions == name)[0], 1),
+          "FY24 excl. High Tech": round(retention(arr, 3, (regions == name) & plain)[0], 1),
+          "FY25 excl. High Tech": round(retention(arr, 4, (regions == name) & plain)[0], 1),
+          "FY26 excl. High Tech": round(retention(arr, 5, (regions == name) & plain)[0], 1)} for name in np.unique(regions)]
     )
+    emea = by_region.set_index("Region").loc["EMEA"]
+    emea_dips = emea["FY25 excl. High Tech"] < emea["FY24 excl. High Tech"]
+    emea_recovers = emea["FY26 excl. High Tech"] > emea["FY25 excl. High Tech"]
 
     ai_ids = set(ids[is_ai])
     fact = fact.assign(hidden=fact["account_id"].isin(ai_ids), fiscal_year=fact["month_id"].map(months.set_index("month_id")["fiscal_year"]))
@@ -123,7 +130,7 @@ def main():
         "",
         f"1. **Top-line ARR is still growing:** ${overall.iloc[3]['arr_m']}M in FY24 to ${overall.iloc[5]['arr_m']}M in FY26.",
         f"2. **GRR and NDR are falling:** see the overall table.",
-        "3. **Slice by region. EMEA is a red herring:** there is a soft patch in FY25 Q1-Q3 that recovers by FY26.", "", markdown_table(by_region), "",
+        f"3. **Slice by region. EMEA is a red herring:** new-logo share dips in FY25 Q1-Q3 and, excluding High Tech, EMEA GRR goes {emea['FY24 excl. High Tech']}% to {emea['FY25 excl. High Tech']}% to {emea['FY26 excl. High Tech']}%. The hidden segment sits in every region, so compare the whole-region and excl. High Tech columns below.", "", markdown_table(by_region), "",
         "4. **Slice by owner. Turnover is a red herring:** US-West lost AEs and CSMs in FY25. Reassigned accounts show fewer touches and a modest churn bump, but it does not explain the decline.",
         "5. **Slice by industry. High Tech stands out:**", "", markdown_table(by_industry), "",
         f"6. **Look at product mix. Analytics is falling:** in the hidden segment, Analytics active users went from {analytics_users[0]:,} at FY24 end to {analytics_users[1]:,} at FY26 end, and seats from {analytics_seats[0]:,} to {analytics_seats[1]:,}.",
@@ -138,7 +145,7 @@ def main():
         f"3. What was GRR in FY24 and FY26? **{overall.iloc[3]['grr']}% and {overall.iloc[5]['grr']}%**",
         f"4. What was NDR in FY26? **{overall.iloc[5]['ndr']}%**",
         f"5. Which industry had the worst GRR in FY26? **{by_industry.iloc[0]['Industry']}, at {by_industry.iloc[0]['FY26 GRR']}%**",
-        f"6. Did EMEA recover? **Yes. EMEA GRR was {by_region.set_index('Region').loc['EMEA', 'FY25 GRR']}% in FY25 and {by_region.set_index('Region').loc['EMEA', 'FY26 GRR']}% in FY26.** Compare it with the other regions in the table above.",
+        f"6. Did EMEA recover after its FY25 soft patch? **{'Yes' if emea_dips and emea_recovers else 'No'}, once High Tech is excluded: {emea['FY25 excl. High Tech']}% in FY25 and {emea['FY26 excl. High Tech']}% in FY26.** Whole-region GRR, which includes High Tech, was {emea['FY25 GRR']}% and {emea['FY26 GRR']}%.",
         f"7. What is GRR without the problem accounts? **FY26 GRR of {rest.iloc[5]['grr']}% and NDR of {rest.iloc[5]['ndr']}%** using the hidden label. An analyst approximates this by excluding High Tech accounts with high API share.",
         "8. Why does activity rise while revenue falls? **Agents make API calls that do not consume seats, and pricing is per seat.**",
         "",

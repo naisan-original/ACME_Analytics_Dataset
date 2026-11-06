@@ -39,7 +39,7 @@ growth:
   starting_customers: 25
   fy_end_customers: [120, 450, 1200, 2400, 3600, 4500]
   expected_annual_churn_by_fy: [0.06, 0.06, 0.06, 0.07, 0.09, 0.13]
-  starting_customer_grower_share: 0.459
+  starting_customer_grower_share: 0.404
   high_tech_new_logo_share: [0.35, 0.28, 0.21, 0.16, 0.30, 0.12]
   segment_new_logo_mix:
     - {Strategic: 0.22, Enterprise: 0.38, Upper Mid-Market: 0.40}
@@ -52,7 +52,7 @@ growth:
     Strategic: {low: 150000, high: 1000000}
     Enterprise: {low: 40000, high: 200000}
     Upper Mid-Market: {low: 15000, high: 60000}
-  land_acv_scale: [0.457, 0.543, 0.619, 0.764, 0.723, 0.554]
+  land_acv_scale: [0.459, 0.501, 0.697, 0.764, 0.782, 0.554]
   two_product_land_share: 0.30
   land_product_weights: {P2: 0.55, P1: 0.30, P3: 0.10, P4: 0.05}
   strategic_multi_year_share: 0.10
@@ -80,9 +80,9 @@ renewal:
   grower_age_years: [1, 3]
   expansion_prob: [0.60, 0.60, 0.58, 0.55, 0.55, 0.55]
   expansion_size: [0.05, 0.35]
-  expansion_scale: [0.689, 1.711, 1.235, 1.422, 1.491, 1.536]
-  loss_multiplier_by_fy: [2.7, 1.384, 1.326, 1.174, 0.9, 0.984]
-  cross_sell_prob: [0.37, 0.37, 0.37, 0.37, 0.37, 0.37]
+  expansion_scale: [0.871, 1.711, 1.244, 1.422, 1.494, 1.483]
+  loss_multiplier_by_fy: [3.075, 1.161, 1.316, 1.085, 0.891, 0.984]
+  cross_sell_prob: [0.38, 0.38, 0.38, 0.38, 0.38, 0.38]
   cross_sell_size: [0.15, 0.45]
   cross_sell_weights: {P3: 0.45, P4: 0.25, P1: 0.20, P2: 0.10}
 
@@ -100,7 +100,7 @@ ai_forward:
   sub_industry_selection_boost: 1.22
   last_landing_month: 59
   min_months_before_onset: 3
-  land_acv_multiplier: 1.534
+  land_acv_multiplier: 1.53
   pre_pivot_churn: 0.03
   pre_pivot_expansion_prob: 0.85
   pre_pivot_expansion: [0.30, 0.80]
@@ -115,10 +115,13 @@ ai_forward:
   logo_churn_prob: 0.74
   analytics_only_exit_share: 0.65
   analytics_only_exit_prob: 0.9
-  analytics_ui_drop: [0.70, 0.80]
+  product_curves:
+    P1: {work_multiplier: [0.9, 1.1], end_api_share: 0.95}
+    P2: {work_multiplier: [1.56, 1.72], end_api_share: 0.76}
+    P3: {work_multiplier: [2.0, 3.0], end_api_share: 0.96}
+    P4: {work_multiplier: [1.1, 1.5], end_api_share: 0.95}
   analytics_seat_cut: [0.30, 0.55]
   analytics_churn_prob: 0.85
-  engine_work_multiplier: [2.0, 3.0]
   engine_seat_cut: [0.0, 0.15]
   transformation_seat_cut: [0.10, 0.30]
   ml_seat_change: [-0.30, 0.20]
@@ -163,8 +166,8 @@ red_herrings:
   emea:
     start_month: 48      # FY25 Q1
     end_month: 56        # FY25 Q3
-    new_logo_drop: 0.20
-    extra_contraction: 0.04
+    new_logo_drop: 0.45
+    extra_contraction: 0.14
   rep_turnover:
     territory: US-West
     start_month: 50

@@ -21,6 +21,7 @@ DEPARTMENT_WEIGHTS = {
 HUMAN_PERSONAS = np.array(["Viewer", "Explorer", "Creator", "Admin"])
 INVERSE_CDF = NormalDist().inv_cdf
 SERVICE_ACCOUNT_BASE = 900_000  # keeps service account ids clear of human user ids
+FADING_SHARE = 0.45  # Explorers and Creators as a share of human users
 
 
 def baseline_api_share(cfg, t, account_noise):
@@ -44,33 +45,41 @@ def seat_timeline(contracts, last_month):
     return months, seats, price, util
 
 
-def ai_multipliers(cfg, account, product, months, rng):
-    """Return per-month UI and total-work multipliers for a hidden-segment product after onset."""
+def ai_curves(cfg, account, product, months, rng):
+    """Per-month UI multiplier and API share for a hidden-segment product.
+
+    Total work follows the product's target multiplier. UI work is what remains once the API share
+    is taken out, so share, UI decline and total work always agree with each other.
+    """
     ai = cfg["ai_forward"]
     ui = np.ones(len(months))
-    work = np.ones(len(months))
+    share = np.zeros(len(months))
     if not account.is_ai:
-        return ui, work
+        return ui, share
+    settings = ai["product_curves"][product]
+    target = rng.uniform(*settings["work_multiplier"])
+    curve = np.array([api_share_at(cfg, account, t) for t in months])
+    start = ai["start_api_share"]
+    share = start + (curve - start) * (settings["end_api_share"] - start) / (ai["end_api_share"] - start)
     progress = np.clip((months - account.onset) / max(account.pivot_months, 1), 0, 1)
-    if product == "P2":
-        ui = 1 - rng.uniform(*ai["analytics_ui_drop"]) * progress
-    elif product == "P3":
-        ui = 1 - 0.5 * progress
-        work = 1 + (rng.uniform(*ai["engine_work_multiplier"]) - 1) * progress
-    elif product == "P1":
-        ui = 1 - 0.35 * progress
-    else:
-        ui = 1 - 0.45 * progress
-        work = 1 + 0.3 * progress
-    return ui, work
+    ui = (1 - share) / (1 - start) * (1 + (target - 1) * progress)
+    return np.clip(ui, 0.03, 1.0), share
 
 
 def simulate_product(cfg, rng, account, product, contracts, last_month, account_people, api_noise):
     """Simulate one account-product. Returns monthly aggregates and sampled user rows."""
     usage = cfg["usage"]
     months, seats, price, util = seat_timeline(contracts, last_month)
-    ui_mult, work_mult = ai_multipliers(cfg, account, product, months, rng)
-    target = np.clip(util * ui_mult + rng.normal(0, cfg["utilization"]["monthly_noise"], len(months)), 0.01, 0.95)
+    ui_mult, ai_share = ai_curves(cfg, account, product, months, rng)
+    fade_keep = 0.35 + 0.65 * ui_mult
+    # Humans leave ahead of the seat cuts, so measure the decline against seats held at onset.
+    seat_scale = np.ones(len(months))
+    if account.is_ai:
+        held = seats[months <= account.onset]
+        seat_scale = np.where(months > account.onset, (held[-1] if len(held) else seats[0]) / np.maximum(seats, 1), 1.0)
+    # Explorers and Creators fade faster than others, so the overall rate is lifted to compensate.
+    overall = util * ui_mult * seat_scale / (1 - FADING_SHARE * (1 - fade_keep)) if account.is_ai else util
+    target = np.clip(overall + rng.normal(0, cfg["utilization"]["monthly_noise"], len(months)), 0.01, 0.95)
 
     users = int(seats.max())
     count = len(months)
@@ -85,7 +94,7 @@ def simulate_product(cfg, rng, account, product, contracts, last_month, account_
     departments = account_people["department"][product][:users]
     if account.is_ai:
         fading = np.isin(personas, ["Explorer", "Creator"])[:, None]
-        keep = rng.random((users, count)) < (0.35 + 0.65 * ui_mult)[None, :]
+        keep = rng.random((users, count)) < fade_keep[None, :]
         active &= ~fading | keep
 
     hours = np.where(
@@ -106,14 +115,15 @@ def simulate_product(cfg, rng, account, product, contracts, last_month, account_
     ui_work = user_ui_work.sum(axis=0)
 
     baseline = np.array([baseline_api_share(cfg, t, api_noise) for t in months])
+    share = np.maximum(baseline, ai_share)
+    api_work = ui_work * share / (1 - share)
     if account.is_ai:
-        hidden = np.array([api_share_at(cfg, account, t) for t in months])
-        share = np.maximum(baseline, hidden)
-        reference = np.maximum(ui_work / np.maximum(ui_mult, 0.05), 1.0)
-        api_work = np.maximum(share * reference * work_mult, ui_work * share / (1 - share))
-    else:
-        share = baseline
-        api_work = ui_work * share / (1 - share)
+        # Size API work from pre-pivot activity, so a few idle humans cannot zero out agent traffic.
+        before = ui_work[months < account.onset][-6:]
+        typical = np.exp(usage["hours_log_mean"] + (usage["hours_user_sigma"] ** 2 + usage["hours_month_sigma"] ** 2) / 2)
+        base = before.mean() if len(before) and before.mean() > 0 else seats[0] * util[0] * typical * rate
+        after = months >= account.onset
+        api_work[after] = base * ui_mult[after] * share[after] / (1 - share[after])
 
     capacity = usage["service_account_capacity"] / calls_per_unit
     service_share = usage["service_account_api_share"]

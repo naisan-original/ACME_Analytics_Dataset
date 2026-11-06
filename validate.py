@@ -155,11 +155,13 @@ def check_discoverability(cfg, tables, arr, ids):
         worst = min(rates, key=rates.get)
         check(f"(a) High Tech has the worst GRR in FY{21 + fy}", worst == "High Tech", f"{worst} at {rates[worst]:.1f}")
 
-    fy26 = fact[fact["month_id"] >= 202511]
+    # A churn row has no activity, so API share is read from each account's last active months.
     tech_ids = accounts.index[accounts["industry"] == "High Tech"]
-    totals = fy26[fy26["account_id"].isin(tech_ids)].groupby("account_id").agg(
-        api=("api_share", lambda share: np.average(share, weights=fy26.loc[share.index, "work_units"] + 1))
-    )
+    in_fy26 = fact.loc[(fact["month_id"] >= 202511) & fact["account_id"].isin(tech_ids), "account_id"].unique()
+    active = fact[fact["account_id"].isin(in_fy26) & (fact["churn_flag"] == 0)]
+    weighted = active.assign(api_work=active["api_share"] * active["work_units"]).groupby(["account_id", "month_id"])[["api_work", "work_units"]].sum()
+    recent = weighted.sort_index().groupby(level="account_id").tail(3).groupby(level="account_id").sum()
+    totals = pd.DataFrame({"api": recent["api_work"] / recent["work_units"].replace(0, np.nan)}).fillna(0)
     churned = accounts.loc[totals.index, "churn_month_id"].fillna(0) >= 202511
     heavy = totals["api"] > 0.5
     high, low = churned[heavy].mean(), churned[~heavy].mean()
@@ -180,6 +182,72 @@ def check_discoverability(cfg, tables, arr, ids):
         without = retention(arr, 3, ~mask)[0] - retention(arr, 5, ~mask)[0]
         explained = (decline - without) / decline
         check(f"(c) {name} explains <= 30% of the FY24-to-FY26 GRR decline", explained <= 0.30, f"{explained:.1%} of {decline:.1f} pts")
+
+
+def check_red_herrings(cfg, tables, arr, ids):
+    accounts = tables["dim_account"].set_index("account_id").reindex(ids)
+    months = tables["dim_month"]["month_id"].tolist()
+    emea = (accounts["region"] == "EMEA").to_numpy()
+    plain = emea & (accounts["industry"] != "High Tech").to_numpy()
+    grr = [retention(arr, fy, plain)[0] for fy in (3, 4, 5)]
+    detail = f"FY24 {grr[0]:.1f}, FY25 {grr[1]:.1f}, FY26 {grr[2]:.1f}"
+    check("EMEA excluding High Tech dips in FY25", grr[1] < grr[0], detail)
+    check("EMEA excluding High Tech recovers in FY26", grr[2] > grr[1], detail)
+
+    since = accounts["customer_since_month_id"].to_numpy()
+
+    def share(low, high):
+        window = (since >= months[low]) & (since <= months[high])
+        return emea[window].mean()
+
+    change = share(48, 56) / share(36, 44) - 1
+    check("EMEA new-logo share falls about 20% in FY25 Q1-Q3", -0.28 <= change <= -0.12, f"{change:.1%}")
+
+    fact = tables["fct_account_product_month"]
+    employees = tables["dim_employee"]
+    turnover = cfg["red_herrings"]["rep_turnover"]
+    leavers = employees[
+        (employees["region"] == turnover["territory"])
+        & employees["termination_month_id"].between(months[turnover["start_month"]], months[turnover["end_month"]])
+    ]["employee_id"]
+    window = fact[fact["month_id"].between(months[turnover["start_month"]], months[turnover["end_month"]])]
+    before = fact[fact["month_id"] == months[turnover["start_month"] - 1]]
+    owned = set(before.loc[before["ae_employee_id"].isin(leavers) | before["csm_employee_id"].isin(leavers), "account_id"])
+    peers = set(window["account_id"]) - owned
+    touches = tables["touchpoints"]
+    touches = touches[touches["month_id"].between(months[turnover["start_month"]], months[turnover["end_month"] + 6])]
+    counts = touches.groupby("account_id").size()
+    affected = counts.reindex(sorted(owned)).fillna(0).mean()
+    others = counts.reindex(sorted(peers)).fillna(0).mean()
+    check("Reassigned accounts get fewer touches than peers", affected < others, f"{affected:.2f} vs {others:.2f}")
+
+
+def check_pivot_behavior(cfg, tables):
+    """Spec Section 6.3: how fully pivoted accounts behave, compared with just before onset."""
+    fact = tables["fct_account_product_month"]
+    pivot = pd.read_csv(Path(cfg["paths"]["facilitator_dir"]) / "pivot_truth.csv")
+    done = pivot[pivot["onset_month"] + pivot["pivot_months"] <= 68]
+    position = {value: index for index, value in enumerate(tables["dim_month"]["month_id"])}
+    joined = fact[fact["account_id"].isin(done["account_id"])].merge(done, on="account_id")
+    joined["t"] = joined["month_id"].map(position)
+
+    def ratio(product, column):
+        rows = joined[joined["product_id"] == product]
+        before = rows[(rows["t"] < rows["onset_month"]) & (rows["t"] >= rows["onset_month"] - 3)].groupby("account_id")[column].mean()
+        after = rows[(rows["t"] >= rows["onset_month"] + rows["pivot_months"]) & (rows["churn_flag"] == 0)].groupby("account_id")[column].mean()
+        return (after / before.replace(0, np.nan)).dropna().median()
+
+    engine = ratio("P3", "work_units")
+    check("Data Engine work rises 2-3x", 2.0 <= engine <= 3.0, f"{engine:.2f}x")
+    users = ratio("P2", "active_users")
+    check("Analytics active users fall 70-80%", 0.20 <= users <= 0.30, f"{1 - users:.0%} fall")
+    sessions = ratio("P2", "ui_sessions")
+    check("Analytics UI sessions fall 70-80%", 0.20 <= sessions <= 0.30, f"{1 - sessions:.0%} fall")
+    transformation = ratio("P1", "work_units")
+    check("Transformation work stays roughly flat", 0.8 <= transformation <= 1.25, f"{transformation:.2f}x")
+    after = joined[(joined["t"] >= joined["onset_month"] + joined["pivot_months"]) & (joined["work_units"] > 0)]
+    share = np.average(after["api_share"], weights=after["work_units"])
+    check("API share reaches 90%+ after the pivot", share >= 0.90, f"{share:.1%}")
 
 
 def check_size(cfg, tables):
@@ -223,6 +291,8 @@ def main():
     check_accounts(tables)
     check_headcount(cfg, tables)
     check_discoverability(cfg, tables, arr, ids)
+    check_red_herrings(cfg, tables, arr, ids)
+    check_pivot_behavior(cfg, tables)
     check_size(cfg, tables)
     check_no_leak(cfg)
 

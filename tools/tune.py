@@ -28,14 +28,14 @@ def evaluate(cfg, table, employees, calendar):
     customers = simulate.run(cfg, table, ae, disrupted, chosen, since, is_ai, calendar)
     rows = [(c.account, c.start, c.end, c.seats, c.price) for a in customers for c in a.contracts]
     arr = metrics.arr_matrix(rows, len(table), calendar.months)
-    return arr, is_ai
+    return arr, is_ai, len(rows)
 
 
-def score(cfg, arr, is_ai, table):
+def score(cfg, arr, is_ai, contracts, table):
     targets = cfg["targets"]
     overall = metrics.kpi_table(arr)
     rest = metrics.kpi_table(arr, ~is_ai)
-    total = 0.0
+    total = max(20_100 - contracts, 0) / 20
     for fy, row in overall.iterrows():
         total += max(abs(row["grr"] - targets["grr"][fy]) - 0.5, 0) ** 2
         total += max(abs(row["ndr"] - targets["ndr"][fy]) - 0.5, 0) ** 2
@@ -50,6 +50,18 @@ def score(cfg, arr, is_ai, table):
     tech = (table["industry"] == "High Tech").to_numpy()
     ai_share = arr[is_ai, fy24].sum() / arr[:, fy24].sum()
     tech_share = arr[tech, fy24].sum() / arr[:, fy24].sum()
+    emea = (table["region"] == "EMEA").to_numpy()
+    plain = emea & ~tech
+    grr = [metrics.retention(arr, fy, plain)[0] for fy in (3, 4, 5)]
+    total += max(grr[1] + 1.5 - grr[0], 0) ** 2 * 2
+    total += max(grr[1] + 1.5 - grr[2], 0) ** 2 * 2
+    first = (arr > 0).argmax(axis=1)
+    ever = (arr > 0).any(axis=1)
+    def emea_share(low, high):
+        window = ever & (first >= low) & (first <= high)
+        return emea[window].mean()
+    change = emea_share(48, 56) / emea_share(36, 44) - 1
+    total += (max(abs(change + 0.20) - 0.06, 0) * 60) ** 2
     total += (max(abs(ai_share - 0.225) - 0.02, 0) * 300) ** 2
     total += (max(abs(tech_share - 0.29) - 0.008, 0) * 300) ** 2
     return total
@@ -97,7 +109,7 @@ def main():
         if best < 0.5:
             break
     print(f"final score {best:.1f}")
-    arr, is_ai = evaluate(cfg, table, employees, calendar)
+    arr, is_ai, _ = evaluate(cfg, table, employees, calendar)
     print(metrics.kpi_table(arr).to_string(index=False))
     print(metrics.kpi_table(arr, ~is_ai).to_string(index=False))
 
