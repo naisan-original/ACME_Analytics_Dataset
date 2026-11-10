@@ -11,13 +11,13 @@ This folder describes the dataset as a semantic model in [Apache Ossie](https://
 | `acme_analytics.ossie.yaml` | `0.3.0.dev0` (current draft) | You use a current Ossie converter or tool. Recommended. |
 | `acme_analytics.osi-0.1.1.yaml` | `0.1.1` (only released version) | Your tool reads the original OSI format, with models wrapped in `semantic_model:`. |
 
-Both files hold the same model. The released format has no data types and writes each expression as `ANSI_SQL`.
+Both files hold the same model. The released format has no data types. The draft file writes each expression twice: in the portable `sql` form the spec prefers, and as `ANSI_SQL` for converters that still only read that form.
 
 **Version note.** Ossie is still incubating and its draft changes often. On 2026-11-09 the draft was renamed from `0.2.0.dev0` to `0.3.0.dev0`, and most [reference converters](https://github.com/apache/ossie-converters) still check for `0.2.0.dev0`. If a converter rejects the version, change the `version:` line in the YAML to `version: "0.2.0.dev0"`. Nothing else needs to change: the edited file passes the `0.2.0.dev0` schema.
 
 ## What's in the model
 
-- **8 datasets**, one per CSV. Each `source` is the table name, so load each CSV as a table named after its file (for example `fct_account_product_month.csv` becomes `fct_account_product_month`).
+- **8 datasets**, one per CSV. Each `source` is a placeholder, `acme_analytics.public.<table>`, because tools such as Snowflake require a full `database.schema.table` name. Load each CSV as a table named after its file (for example `fct_account_product_month.csv` becomes `fct_account_product_month`), then replace `acme_analytics.public` with your own database and schema.
 - **15 relationships**, all many-to-one from a fact table to a dimension. `dim_employee` is joined twice from the main fact table, once as the Account Executive and once as the Customer Success Manager.
 - **27 metrics**, including ARR, customers, API share, weighted usage estimates, bookings and sentiment.
 - **AI context**: instructions, synonyms and example questions, so an agent knows that ARR is a monthly snapshot, that the fiscal year ends October 31, and that `region = 'NA'` means North America.
@@ -74,6 +74,10 @@ ORDER BY fiscal_year
 - confirms every field matches a CSV column, every primary key is unique, and every relationship has no orphaned keys
 - runs all 27 metrics as SQL against the CSVs with DuckDB
 - confirms that year-end ARR, year-end customers and the GRR and NDR query above match the dataset's answer key
+
+Both files also pass the validators in the official Ossie repository: the current draft validator for `acme_analytics.ossie.yaml` and the 0.1.1 validator for `acme_analytics.osi-0.1.1.yaml`.
+
+The Snowflake reference converter (`apache/ossie-converters`) converts the draft file, with its version set to `0.2.0.dev0`, to a Cortex Analyst semantic model. All 8 tables, 86 fields, 15 relationships and 27 metrics come through, along with their synonyms. Snowflake's format has nowhere to put the AI instructions, so the converter drops them.
 
 ## License
 

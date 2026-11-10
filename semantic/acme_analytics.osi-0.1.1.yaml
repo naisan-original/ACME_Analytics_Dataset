@@ -29,7 +29,7 @@ semantic_model:
     - What were GRR and NDR in FY26?
   datasets:
   - name: fct_account_product_month
-    source: fct_account_product_month
+    source: acme_analytics.public.fct_account_product_month
     primary_key:
     - month_id
     - account_id
@@ -217,7 +217,7 @@ semantic_model:
       dimension:
         is_time: false
   - name: dim_account
-    source: dim_account
+    source: acme_analytics.public.dim_account
     primary_key:
     - account_id
     description: 'One row per account: customers, former customers and prospects.'
@@ -377,7 +377,7 @@ semantic_model:
       dimension:
         is_time: false
   - name: dim_product
-    source: dim_product
+    source: acme_analytics.public.dim_product
     primary_key:
     - product_id
     description: The four ACME products. All are seat-priced, and API calls do not consume seats.
@@ -421,7 +421,7 @@ semantic_model:
       dimension:
         is_time: false
   - name: dim_month
-    source: dim_month
+    source: acme_analytics.public.dim_month
     primary_key:
     - month_id
     description: 72 months, Nov 2020 to Oct 2026. The fiscal year ends Oct 31.
@@ -506,7 +506,7 @@ semantic_model:
       dimension:
         is_time: true
   - name: dim_employee
-    source: dim_employee
+    source: acme_analytics.public.dim_employee
     primary_key:
     - employee_id
     description: Sales and customer success staff, including leavers.
@@ -582,7 +582,7 @@ semantic_model:
       dimension:
         is_time: false
   - name: user_usage_month
-    source: user_usage_month
+    source: acme_analytics.public.user_usage_month
     primary_key:
     - user_id
     - product_id
@@ -691,7 +691,7 @@ semantic_model:
       dimension:
         is_time: false
   - name: contracts
-    source: contracts
+    source: acme_analytics.public.contracts
     primary_key:
     - contract_id
     description: One row per contract. Sum ACV of active contracts to reconcile to central ARR.
@@ -806,7 +806,7 @@ semantic_model:
       dimension:
         is_time: false
   - name: touchpoints
-    source: touchpoints
+    source: acme_analytics.public.touchpoints
     primary_key:
     - touchpoint_id
     description: Logged customer and prospect interactions.

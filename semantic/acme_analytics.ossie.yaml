@@ -28,7 +28,7 @@ ai_context:
   - What were GRR and NDR in FY26?
 datasets:
 - name: fct_account_product_month
-  source: fct_account_product_month
+  source: acme_analytics.public.fct_account_product_month
   primary_key:
   - month_id
   - account_id
@@ -49,6 +49,9 @@ datasets:
   - name: month_id
     expression:
       sql: month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_id
     datatype: Integer
     description: FK to dim_month (YYYYMM)
     dimension:
@@ -56,6 +59,9 @@ datasets:
   - name: account_id
     expression:
       sql: account_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_id
     datatype: String
     description: FK to dim_account
     dimension:
@@ -63,6 +69,9 @@ datasets:
   - name: product_id
     expression:
       sql: product_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: product_id
     datatype: String
     description: FK to dim_product
     dimension:
@@ -70,6 +79,9 @@ datasets:
   - name: ae_employee_id
     expression:
       sql: ae_employee_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: ae_employee_id
     datatype: String
     description: FK to dim_employee. Account Executive that month
     dimension:
@@ -77,6 +89,9 @@ datasets:
   - name: csm_employee_id
     expression:
       sql: csm_employee_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: csm_employee_id
     datatype: String
     description: FK to dim_employee. Customer Success Manager that month
     dimension:
@@ -84,6 +99,9 @@ datasets:
   - name: licensed_seats
     expression:
       sql: licensed_seats
+      dialects:
+      - dialect: ANSI_SQL
+        expression: licensed_seats
     datatype: Integer
     description: Contracted seats
     dimension:
@@ -95,6 +113,9 @@ datasets:
   - name: list_price_per_seat_month
     expression:
       sql: list_price_per_seat_month
+      dialects:
+      - dialect: ANSI_SQL
+        expression: list_price_per_seat_month
     datatype: Decimal
     description: List price per seat per month
     dimension:
@@ -102,6 +123,9 @@ datasets:
   - name: net_price_per_seat_month
     expression:
       sql: net_price_per_seat_month
+      dialects:
+      - dialect: ANSI_SQL
+        expression: net_price_per_seat_month
     datatype: Decimal
     description: Net price after volume discount
     dimension:
@@ -109,6 +133,9 @@ datasets:
   - name: mrr
     expression:
       sql: mrr
+      dialects:
+      - dialect: ANSI_SQL
+        expression: mrr
     datatype: Decimal
     description: Monthly recurring revenue
     dimension:
@@ -119,6 +146,9 @@ datasets:
   - name: arr
     expression:
       sql: arr
+      dialects:
+      - dialect: ANSI_SQL
+        expression: arr
     datatype: Decimal
     description: mrr x 12
     dimension:
@@ -131,6 +161,9 @@ datasets:
   - name: active_users
     expression:
       sql: active_users
+      dialects:
+      - dialect: ANSI_SQL
+        expression: active_users
     datatype: Integer
     description: Distinct users with at least one UI session in the month
     dimension:
@@ -138,6 +171,9 @@ datasets:
   - name: ui_sessions
     expression:
       sql: ui_sessions
+      dialects:
+      - dialect: ANSI_SQL
+        expression: ui_sessions
     datatype: Integer
     description: UI sessions
     dimension:
@@ -145,6 +181,9 @@ datasets:
   - name: ui_hours
     expression:
       sql: ui_hours
+      dialects:
+      - dialect: ANSI_SQL
+        expression: ui_hours
     datatype: Float
     description: UI hours
     dimension:
@@ -152,6 +191,9 @@ datasets:
   - name: api_calls
     expression:
       sql: api_calls
+      dialects:
+      - dialect: ANSI_SQL
+        expression: api_calls
     datatype: Integer
     description: Monthly API request count
     dimension:
@@ -159,6 +201,9 @@ datasets:
   - name: work_units
     expression:
       sql: work_units
+      dialects:
+      - dialect: ANSI_SQL
+        expression: work_units
     datatype: Integer
     description: Product-specific activity. See dim_product.work_unit_label
     dimension:
@@ -166,6 +211,9 @@ datasets:
   - name: api_share
     expression:
       sql: api_share
+      dialects:
+      - dialect: ANSI_SQL
+        expression: api_share
     datatype: Float
     description: API work units / total work units, 0 to 1
     dimension:
@@ -177,6 +225,9 @@ datasets:
   - name: renewal_month_flag
     expression:
       sql: renewal_month_flag
+      dialects:
+      - dialect: ANSI_SQL
+        expression: renewal_month_flag
     datatype: Integer
     description: 1 in a renewal month
     dimension:
@@ -184,6 +235,9 @@ datasets:
   - name: arr_change_type
     expression:
       sql: arr_change_type
+      dialects:
+      - dialect: ANSI_SQL
+        expression: arr_change_type
     datatype: String
     description: none, new, expansion, contraction or churn. Set by ARR movement, so a price uplift on flat seats is an expansion
     dimension:
@@ -191,12 +245,15 @@ datasets:
   - name: churn_flag
     expression:
       sql: churn_flag
+      dialects:
+      - dialect: ANSI_SQL
+        expression: churn_flag
     datatype: Integer
     description: 1 in the month a product subscription ends
     dimension:
       is_time: false
 - name: dim_account
-  source: dim_account
+  source: acme_analytics.public.dim_account
   primary_key:
   - account_id
   description: 'One row per account: customers, former customers and prospects.'
@@ -214,6 +271,9 @@ datasets:
   - name: account_id
     expression:
       sql: account_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_id
     datatype: String
     description: Primary key
     dimension:
@@ -221,6 +281,9 @@ datasets:
   - name: account_name
     expression:
       sql: account_name
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_name
     datatype: String
     description: Company name
     dimension:
@@ -232,6 +295,9 @@ datasets:
   - name: hq_country
     expression:
       sql: hq_country
+      dialects:
+      - dialect: ANSI_SQL
+        expression: hq_country
     datatype: String
     description: Headquarters country
     dimension:
@@ -239,6 +305,9 @@ datasets:
   - name: hq_city
     expression:
       sql: hq_city
+      dialects:
+      - dialect: ANSI_SQL
+        expression: hq_city
     datatype: String
     description: Headquarters city
     dimension:
@@ -246,6 +315,9 @@ datasets:
   - name: region
     expression:
       sql: region
+      dialects:
+      - dialect: ANSI_SQL
+        expression: region
     datatype: String
     description: NA, EMEA, APAC or LATAM
     dimension:
@@ -257,6 +329,9 @@ datasets:
   - name: industry
     expression:
       sql: industry
+      dialects:
+      - dialect: ANSI_SQL
+        expression: industry
     datatype: String
     description: Industry
     dimension:
@@ -268,6 +343,9 @@ datasets:
   - name: sub_industry
     expression:
       sql: sub_industry
+      dialects:
+      - dialect: ANSI_SQL
+        expression: sub_industry
     datatype: String
     description: Sub-industry
     dimension:
@@ -275,6 +353,9 @@ datasets:
   - name: annual_revenue_band
     expression:
       sql: annual_revenue_band
+      dialects:
+      - dialect: ANSI_SQL
+        expression: annual_revenue_band
     datatype: String
     description: Revenue band, not a reported figure
     dimension:
@@ -282,6 +363,9 @@ datasets:
   - name: employee_band
     expression:
       sql: employee_band
+      dialects:
+      - dialect: ANSI_SQL
+        expression: employee_band
     datatype: String
     description: Employee band
     dimension:
@@ -289,6 +373,9 @@ datasets:
   - name: fortune_rank
     expression:
       sql: fortune_rank
+      dialects:
+      - dialect: ANSI_SQL
+        expression: fortune_rank
     datatype: Integer
     description: Approximate US rank from public revenue data. Nullable
     dimension:
@@ -296,6 +383,9 @@ datasets:
   - name: global2000_rank
     expression:
       sql: global2000_rank
+      dialects:
+      - dialect: ANSI_SQL
+        expression: global2000_rank
     datatype: Integer
     description: Approximate global rank from public revenue data. Nullable
     dimension:
@@ -303,6 +393,9 @@ datasets:
   - name: segment
     expression:
       sql: segment
+      dialects:
+      - dialect: ANSI_SQL
+        expression: segment
     datatype: String
     description: Strategic, Enterprise or Upper Mid-Market
     dimension:
@@ -314,6 +407,9 @@ datasets:
   - name: account_status
     expression:
       sql: account_status
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_status
     datatype: String
     description: Customer, Former Customer or Prospect
     dimension:
@@ -321,6 +417,9 @@ datasets:
   - name: customer_since_month_id
     expression:
       sql: customer_since_month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: customer_since_month_id
     datatype: Integer
     description: First paying month. Nullable
     dimension:
@@ -328,6 +427,9 @@ datasets:
   - name: churn_month_id
     expression:
       sql: churn_month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: churn_month_id
     datatype: Integer
     description: Month the account fully churned. Nullable
     dimension:
@@ -335,12 +437,15 @@ datasets:
   - name: tech_signals
     expression:
       sql: tech_signals
+      dialects:
+      - dialect: ANSI_SQL
+        expression: tech_signals
     datatype: String
     description: Semicolon list of marketing-enrichment topics
     dimension:
       is_time: false
 - name: dim_product
-  source: dim_product
+  source: acme_analytics.public.dim_product
   primary_key:
   - product_id
   description: The four ACME products. All are seat-priced, and API calls do not consume seats.
@@ -354,6 +459,9 @@ datasets:
   - name: product_id
     expression:
       sql: product_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: product_id
     datatype: String
     description: Primary key
     dimension:
@@ -361,6 +469,9 @@ datasets:
   - name: product_name
     expression:
       sql: product_name
+      dialects:
+      - dialect: ANSI_SQL
+        expression: product_name
     datatype: String
     description: Name
     dimension:
@@ -368,6 +479,9 @@ datasets:
   - name: work_unit_label
     expression:
       sql: work_unit_label
+      dialects:
+      - dialect: ANSI_SQL
+        expression: work_unit_label
     datatype: String
     description: What work_units counts
     dimension:
@@ -375,12 +489,15 @@ datasets:
   - name: price_multiplier
     expression:
       sql: price_multiplier
+      dialects:
+      - dialect: ANSI_SQL
+        expression: price_multiplier
     datatype: Decimal
     description: Price multiplier versus the $30 base
     dimension:
       is_time: false
 - name: dim_month
-  source: dim_month
+  source: acme_analytics.public.dim_month
   primary_key:
   - month_id
   description: 72 months, Nov 2020 to Oct 2026. The fiscal year ends Oct 31.
@@ -396,6 +513,9 @@ datasets:
   - name: month_id
     expression:
       sql: month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_id
     datatype: Integer
     description: Primary key (YYYYMM)
     dimension:
@@ -403,6 +523,9 @@ datasets:
   - name: month_start_date
     expression:
       sql: month_start_date
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_start_date
     datatype: Date
     description: First day of month
     dimension:
@@ -410,6 +533,9 @@ datasets:
   - name: fiscal_year
     expression:
       sql: fiscal_year
+      dialects:
+      - dialect: ANSI_SQL
+        expression: fiscal_year
     datatype: String
     description: FY21 to FY26
     dimension:
@@ -420,6 +546,9 @@ datasets:
   - name: fiscal_quarter
     expression:
       sql: fiscal_quarter
+      dialects:
+      - dialect: ANSI_SQL
+        expression: fiscal_quarter
     datatype: String
     description: Fiscal quarter
     dimension:
@@ -431,6 +560,9 @@ datasets:
   - name: calendar_year
     expression:
       sql: calendar_year
+      dialects:
+      - dialect: ANSI_SQL
+        expression: calendar_year
     datatype: Integer
     description: Calendar year
     dimension:
@@ -438,6 +570,9 @@ datasets:
   - name: calendar_quarter
     expression:
       sql: calendar_quarter
+      dialects:
+      - dialect: ANSI_SQL
+        expression: calendar_quarter
     datatype: String
     description: Calendar quarter
     dimension:
@@ -445,6 +580,9 @@ datasets:
   - name: is_fiscal_year_end
     expression:
       sql: month_id % 100 = 10
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_id % 100 = 10
     datatype: Boolean
     description: True for October, the last month of the fiscal year. Filter on it to read ARR at year end
     dimension:
@@ -452,12 +590,15 @@ datasets:
   - name: is_fiscal_quarter_end
     expression:
       sql: month_id % 100 IN (1, 4, 7, 10)
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_id % 100 IN (1, 4, 7, 10)
     datatype: Boolean
     description: True for the last month of each fiscal quarter (January, April, July, October)
     dimension:
       is_time: true
 - name: dim_employee
-  source: dim_employee
+  source: acme_analytics.public.dim_employee
   primary_key:
   - employee_id
   description: Sales and customer success staff, including leavers.
@@ -475,6 +616,9 @@ datasets:
   - name: employee_id
     expression:
       sql: employee_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: employee_id
     datatype: String
     description: Primary key
     dimension:
@@ -482,6 +626,9 @@ datasets:
   - name: name
     expression:
       sql: name
+      dialects:
+      - dialect: ANSI_SQL
+        expression: name
     datatype: String
     description: Fictional name
     dimension:
@@ -489,6 +636,9 @@ datasets:
   - name: role
     expression:
       sql: role
+      dialects:
+      - dialect: ANSI_SQL
+        expression: role
     datatype: String
     description: AE, CSM, Sales Leader or CS Leader
     dimension:
@@ -496,6 +646,9 @@ datasets:
   - name: region
     expression:
       sql: region
+      dialects:
+      - dialect: ANSI_SQL
+        expression: region
     datatype: String
     description: Territory
     dimension:
@@ -507,6 +660,9 @@ datasets:
   - name: hire_month_id
     expression:
       sql: hire_month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: hire_month_id
     datatype: Integer
     description: Hire month
     dimension:
@@ -514,6 +670,9 @@ datasets:
   - name: termination_month_id
     expression:
       sql: termination_month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: termination_month_id
     datatype: Integer
     description: Last month. Nullable
     dimension:
@@ -521,12 +680,15 @@ datasets:
   - name: quota_arr
     expression:
       sql: quota_arr
+      dialects:
+      - dialect: ANSI_SQL
+        expression: quota_arr
     datatype: Decimal
     description: Annual quota. AEs only
     dimension:
       is_time: false
 - name: user_usage_month
-  source: user_usage_month
+  source: acme_analytics.public.user_usage_month
   primary_key:
   - user_id
   - product_id
@@ -545,6 +707,9 @@ datasets:
   - name: user_id
     expression:
       sql: user_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: user_id
     datatype: String
     description: User key
     dimension:
@@ -552,6 +717,9 @@ datasets:
   - name: account_id
     expression:
       sql: account_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_id
     datatype: String
     description: FK to dim_account
     dimension:
@@ -559,6 +727,9 @@ datasets:
   - name: product_id
     expression:
       sql: product_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: product_id
     datatype: String
     description: FK to dim_product
     dimension:
@@ -566,6 +737,9 @@ datasets:
   - name: month_id
     expression:
       sql: month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_id
     datatype: Integer
     description: FK to dim_month
     dimension:
@@ -573,6 +747,9 @@ datasets:
   - name: user_department
     expression:
       sql: user_department
+      dialects:
+      - dialect: ANSI_SQL
+        expression: user_department
     datatype: String
     description: Department
     dimension:
@@ -580,6 +757,9 @@ datasets:
   - name: user_persona
     expression:
       sql: user_persona
+      dialects:
+      - dialect: ANSI_SQL
+        expression: user_persona
     datatype: String
     description: Viewer, Explorer, Creator, Admin or Service Account
     dimension:
@@ -591,6 +771,9 @@ datasets:
   - name: ui_sessions
     expression:
       sql: ui_sessions
+      dialects:
+      - dialect: ANSI_SQL
+        expression: ui_sessions
     datatype: Integer
     description: UI sessions
     dimension:
@@ -598,6 +781,9 @@ datasets:
   - name: ui_hours
     expression:
       sql: ui_hours
+      dialects:
+      - dialect: ANSI_SQL
+        expression: ui_hours
     datatype: Float
     description: UI hours
     dimension:
@@ -605,6 +791,9 @@ datasets:
   - name: api_calls
     expression:
       sql: api_calls
+      dialects:
+      - dialect: ANSI_SQL
+        expression: api_calls
     datatype: Integer
     description: API requests
     dimension:
@@ -612,6 +801,9 @@ datasets:
   - name: work_units
     expression:
       sql: work_units
+      dialects:
+      - dialect: ANSI_SQL
+        expression: work_units
     datatype: Integer
     description: Activity
     dimension:
@@ -619,12 +811,15 @@ datasets:
   - name: sample_weight
     expression:
       sql: sample_weight
+      dialects:
+      - dialect: ANSI_SQL
+        expression: sample_weight
     datatype: Float
     description: Multiply measures by this to estimate the full population
     dimension:
       is_time: false
 - name: contracts
-  source: contracts
+  source: acme_analytics.public.contracts
   primary_key:
   - contract_id
   description: One row per contract. Sum ACV of active contracts to reconcile to central ARR.
@@ -641,6 +836,9 @@ datasets:
   - name: contract_id
     expression:
       sql: contract_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: contract_id
     datatype: String
     description: Primary key
     dimension:
@@ -648,6 +846,9 @@ datasets:
   - name: account_id
     expression:
       sql: account_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_id
     datatype: String
     description: FK to dim_account
     dimension:
@@ -655,6 +856,9 @@ datasets:
   - name: product_id
     expression:
       sql: product_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: product_id
     datatype: String
     description: FK to dim_product
     dimension:
@@ -662,6 +866,9 @@ datasets:
   - name: contract_type
     expression:
       sql: contract_type
+      dialects:
+      - dialect: ANSI_SQL
+        expression: contract_type
     datatype: String
     description: New, Renewal or Expansion Add-on
     dimension:
@@ -669,6 +876,9 @@ datasets:
   - name: start_month_id
     expression:
       sql: start_month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: start_month_id
     datatype: Integer
     description: First month
     dimension:
@@ -676,6 +886,9 @@ datasets:
   - name: end_month_id
     expression:
       sql: end_month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: end_month_id
     datatype: Integer
     description: Last month, which can fall after the data window
     dimension:
@@ -683,6 +896,9 @@ datasets:
   - name: term_months
     expression:
       sql: term_months
+      dialects:
+      - dialect: ANSI_SQL
+        expression: term_months
     datatype: Integer
     description: Length in months. Add-ons co-term, so they can be short
     dimension:
@@ -690,6 +906,9 @@ datasets:
   - name: seats
     expression:
       sql: seats
+      dialects:
+      - dialect: ANSI_SQL
+        expression: seats
     datatype: Integer
     description: Seats
     dimension:
@@ -697,6 +916,9 @@ datasets:
   - name: net_price_per_seat_month
     expression:
       sql: net_price_per_seat_month
+      dialects:
+      - dialect: ANSI_SQL
+        expression: net_price_per_seat_month
     datatype: Decimal
     description: Net price
     dimension:
@@ -704,6 +926,9 @@ datasets:
   - name: acv
     expression:
       sql: acv
+      dialects:
+      - dialect: ANSI_SQL
+        expression: acv
     datatype: Decimal
     description: Annual contract value
     dimension:
@@ -715,6 +940,9 @@ datasets:
   - name: outcome
     expression:
       sql: outcome
+      dialects:
+      - dialect: ANSI_SQL
+        expression: outcome
     datatype: String
     description: Renewed Flat, Renewed Up, Renewed Down, Churned or Active. Based on seats
     dimension:
@@ -722,12 +950,15 @@ datasets:
   - name: ae_employee_id
     expression:
       sql: ae_employee_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: ae_employee_id
     datatype: String
     description: FK to dim_employee
     dimension:
       is_time: false
 - name: touchpoints
-  source: touchpoints
+  source: acme_analytics.public.touchpoints
   primary_key:
   - touchpoint_id
   description: Logged customer and prospect interactions.
@@ -744,6 +975,9 @@ datasets:
   - name: touchpoint_id
     expression:
       sql: touchpoint_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: touchpoint_id
     datatype: String
     description: Primary key
     dimension:
@@ -751,6 +985,9 @@ datasets:
   - name: account_id
     expression:
       sql: account_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: account_id
     datatype: String
     description: FK to dim_account
     dimension:
@@ -758,6 +995,9 @@ datasets:
   - name: employee_id
     expression:
       sql: employee_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: employee_id
     datatype: String
     description: FK to dim_employee
     dimension:
@@ -765,6 +1005,9 @@ datasets:
   - name: month_id
     expression:
       sql: month_id
+      dialects:
+      - dialect: ANSI_SQL
+        expression: month_id
     datatype: Integer
     description: FK to dim_month
     dimension:
@@ -772,6 +1015,9 @@ datasets:
   - name: touch_date
     expression:
       sql: touch_date
+      dialects:
+      - dialect: ANSI_SQL
+        expression: touch_date
     datatype: Date
     description: Date
     dimension:
@@ -779,6 +1025,9 @@ datasets:
   - name: channel
     expression:
       sql: channel
+      dialects:
+      - dialect: ANSI_SQL
+        expression: channel
     datatype: String
     description: Call, Email, QBR, Onsite or Support Escalation
     dimension:
@@ -786,6 +1035,9 @@ datasets:
   - name: touch_type
     expression:
       sql: touch_type
+      dialects:
+      - dialect: ANSI_SQL
+        expression: touch_type
     datatype: String
     description: Discovery, Onboarding, Check-in, QBR, Renewal, Expansion or Risk
     dimension:
@@ -793,6 +1045,9 @@ datasets:
   - name: sentiment
     expression:
       sql: sentiment
+      dialects:
+      - dialect: ANSI_SQL
+        expression: sentiment
     datatype: Integer
     description: -2 to +2
     dimension:
@@ -804,6 +1059,9 @@ datasets:
   - name: notes
     expression:
       sql: notes
+      dialects:
+      - dialect: ANSI_SQL
+        expression: notes
     datatype: String
     description: Free-text notes
     dimension:
@@ -921,6 +1179,9 @@ metrics:
 - name: arr
   expression:
     sql: SUM(fct_account_product_month.arr)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.arr)
   datatype: Decimal
   description: Annual recurring revenue (MRR x 12).
   ai_context:
@@ -933,6 +1194,9 @@ metrics:
 - name: mrr
   expression:
     sql: SUM(fct_account_product_month.mrr)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.mrr)
   datatype: Decimal
   description: Monthly recurring revenue.
   ai_context:
@@ -942,6 +1206,9 @@ metrics:
 - name: fiscal_year_end_arr
   expression:
     sql: SUM(CASE WHEN fct_account_product_month.month_id % 100 = 10 THEN fct_account_product_month.arr END)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(CASE WHEN fct_account_product_month.month_id % 100 = 10 THEN fct_account_product_month.arr END)
   datatype: Decimal
   description: ARR in October, the last month of each fiscal year.
   ai_context:
@@ -953,6 +1220,10 @@ metrics:
 - name: fiscal_quarter_end_arr
   expression:
     sql: SUM(CASE WHEN fct_account_product_month.month_id % 100 IN (1, 4, 7, 10) THEN fct_account_product_month.arr END)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(CASE WHEN fct_account_product_month.month_id % 100 IN (1, 4, 7, 10) THEN fct_account_product_month.arr
+        END)
   datatype: Decimal
   description: ARR in the last month of each fiscal quarter.
   ai_context:
@@ -962,6 +1233,9 @@ metrics:
 - name: paying_customers
   expression:
     sql: COUNT(DISTINCT CASE WHEN fct_account_product_month.arr > 0 THEN fct_account_product_month.account_id END)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(DISTINCT CASE WHEN fct_account_product_month.arr > 0 THEN fct_account_product_month.account_id END)
   datatype: Integer
   description: Accounts with ARR above zero.
   ai_context:
@@ -976,6 +1250,10 @@ metrics:
   expression:
     sql: COUNT(DISTINCT CASE WHEN fct_account_product_month.month_id % 100 = 10 AND fct_account_product_month.arr > 0 THEN
       fct_account_product_month.account_id END)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(DISTINCT CASE WHEN fct_account_product_month.month_id % 100 = 10 AND fct_account_product_month.arr
+        > 0 THEN fct_account_product_month.account_id END)
   datatype: Integer
   description: Paying customers in October, the last month of each fiscal year.
   ai_context:
@@ -986,6 +1264,9 @@ metrics:
 - name: licensed_seats
   expression:
     sql: SUM(fct_account_product_month.licensed_seats)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.licensed_seats)
   datatype: Integer
   description: Contracted seats.
   ai_context:
@@ -996,6 +1277,9 @@ metrics:
 - name: active_users
   expression:
     sql: SUM(fct_account_product_month.active_users)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.active_users)
   datatype: Integer
   description: Users with at least one UI session. A person using two products counts once per product.
   ai_context:
@@ -1006,6 +1290,9 @@ metrics:
 - name: ui_hours
   expression:
     sql: SUM(fct_account_product_month.ui_hours)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.ui_hours)
   datatype: Float
   description: Hours spent in the product UI.
   ai_context:
@@ -1015,6 +1302,9 @@ metrics:
 - name: ui_sessions
   expression:
     sql: SUM(fct_account_product_month.ui_sessions)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.ui_sessions)
   datatype: Integer
   description: UI sessions.
   ai_context:
@@ -1024,6 +1314,9 @@ metrics:
 - name: api_calls
   expression:
     sql: SUM(fct_account_product_month.api_calls)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.api_calls)
   datatype: Integer
   description: API requests.
   ai_context:
@@ -1033,6 +1326,9 @@ metrics:
 - name: work_units
   expression:
     sql: SUM(fct_account_product_month.work_units)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.work_units)
   datatype: Integer
   description: Product-specific activity; dim_product.work_unit_label says what each product counts.
   ai_context:
@@ -1044,6 +1340,10 @@ metrics:
   expression:
     sql: SUM(fct_account_product_month.api_share * fct_account_product_month.work_units) / NULLIF(SUM(fct_account_product_month.work_units),
       0)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.api_share * fct_account_product_month.work_units) / NULLIF(SUM(fct_account_product_month.work_units),
+        0)
   datatype: Float
   description: Share of work done through the API, weighted by work units. 0 to 1.
   ai_context:
@@ -1055,6 +1355,10 @@ metrics:
   expression:
     sql: 1 - SUM(fct_account_product_month.net_price_per_seat_month * fct_account_product_month.licensed_seats) / NULLIF(SUM(fct_account_product_month.list_price_per_seat_month
       * fct_account_product_month.licensed_seats), 0)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: 1 - SUM(fct_account_product_month.net_price_per_seat_month * fct_account_product_month.licensed_seats) /
+        NULLIF(SUM(fct_account_product_month.list_price_per_seat_month * fct_account_product_month.licensed_seats), 0)
   datatype: Float
   description: Seat-weighted discount from list price. 0 to 1.
   ai_context:
@@ -1064,6 +1368,9 @@ metrics:
 - name: product_churns
   expression:
     sql: SUM(fct_account_product_month.churn_flag)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.churn_flag)
   datatype: Integer
   description: Product subscriptions that ended.
   ai_context:
@@ -1074,6 +1381,9 @@ metrics:
 - name: renewals_due
   expression:
     sql: SUM(fct_account_product_month.renewal_month_flag)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(fct_account_product_month.renewal_month_flag)
   datatype: Integer
   description: Account-product months in which a renewal falls.
   ai_context:
@@ -1082,6 +1392,9 @@ metrics:
 - name: estimated_users
   expression:
     sql: SUM(user_usage_month.sample_weight)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(user_usage_month.sample_weight)
   datatype: Float
   description: Estimated number of users in the full population, from the weighted sample.
   ai_context:
@@ -1092,16 +1405,25 @@ metrics:
 - name: estimated_ui_hours
   expression:
     sql: SUM(user_usage_month.ui_hours * user_usage_month.sample_weight)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(user_usage_month.ui_hours * user_usage_month.sample_weight)
   datatype: Float
   description: Estimated full-population UI hours from the weighted user sample.
 - name: estimated_api_calls
   expression:
     sql: SUM(user_usage_month.api_calls * user_usage_month.sample_weight)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(user_usage_month.api_calls * user_usage_month.sample_weight)
   datatype: Float
   description: Estimated full-population API calls from the weighted user sample.
 - name: sampled_users
   expression:
     sql: COUNT(DISTINCT user_usage_month.user_id)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(DISTINCT user_usage_month.user_id)
   datatype: Integer
   description: Distinct users in the sample. Not a population count.
   ai_context:
@@ -1109,6 +1431,9 @@ metrics:
 - name: contract_count
   expression:
     sql: COUNT(contracts.contract_id)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(contracts.contract_id)
   datatype: Integer
   description: Contracts.
   ai_context:
@@ -1118,6 +1443,9 @@ metrics:
 - name: booked_acv
   expression:
     sql: SUM(contracts.acv)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: SUM(contracts.acv)
   datatype: Decimal
   description: Annual contract value of contracts, by start month.
   ai_context:
@@ -1128,6 +1456,9 @@ metrics:
 - name: touchpoint_count
   expression:
     sql: COUNT(touchpoints.touchpoint_id)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(touchpoints.touchpoint_id)
   datatype: Integer
   description: Logged interactions.
   ai_context:
@@ -1138,6 +1469,9 @@ metrics:
 - name: average_sentiment
   expression:
     sql: AVG(touchpoints.sentiment)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: AVG(touchpoints.sentiment)
   datatype: Float
   description: Average touchpoint sentiment, from -2 to +2.
   ai_context:
@@ -1147,11 +1481,17 @@ metrics:
 - name: touched_accounts
   expression:
     sql: COUNT(DISTINCT touchpoints.account_id)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(DISTINCT touchpoints.account_id)
   datatype: Integer
   description: Accounts with at least one logged interaction, including prospects.
 - name: account_count
   expression:
     sql: COUNT(DISTINCT dim_account.account_id)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(DISTINCT dim_account.account_id)
   datatype: Integer
   description: Accounts of every status, including prospects.
   ai_context:
@@ -1161,6 +1501,9 @@ metrics:
 - name: employee_count
   expression:
     sql: COUNT(DISTINCT dim_employee.employee_id)
+    dialects:
+    - dialect: ANSI_SQL
+      expression: COUNT(DISTINCT dim_employee.employee_id)
   datatype: Integer
   description: Sales and customer success staff, including leavers.
   ai_context:

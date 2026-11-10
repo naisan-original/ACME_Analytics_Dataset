@@ -35,6 +35,10 @@ SCHEMAS = {
     RELEASED_VERSION: "https://raw.githubusercontent.com/apache/ossie/faf581054dcf7964d5fe0ceae7d6f415c8ce32a5/core-spec/osi-schema.json",
 }
 
+# Placeholder location for each table. Snowflake and other tools require database.schema.table;
+# replace acme_analytics.public with wherever the CSVs are loaded.
+SOURCE_PREFIX = "acme_analytics.public"
+
 FACT = "fct_account_product_month"
 USAGE = "user_usage_month"
 
@@ -275,6 +279,11 @@ def datatype(column):
     return "String"
 
 
+def expression(sql):
+    """The portable `sql` form the spec prefers, repeated as ANSI_SQL for converters that only read dialects."""
+    return {"sql": sql, "dialects": [{"dialect": "ANSI_SQL", "expression": sql}]}
+
+
 def context(synonyms=None, instructions=None, examples=None):
     value = {}
     if instructions:
@@ -293,7 +302,7 @@ def build_model(cfg):
         description, columns = DICTIONARY[name]
         fields = []
         for column, text in columns.items():
-            field = {"name": column, "expression": {"sql": column}, "datatype": datatype(column), "description": text}
+            field = {"name": column, "expression": expression(column), "datatype": datatype(column), "description": text}
             # Every dim_month column is a time grain. In fact tables, month keys are plain keys, as in the TPC-DS example.
             field["dimension"] = {"is_time": name == "dim_month" or column in DATE_COLUMNS}
             extra = context(FIELD_SYNONYMS.get(column))
@@ -301,11 +310,11 @@ def build_model(cfg):
                 field["ai_context"] = extra
             fields.append(field)
         for computed in COMPUTED_FIELDS.get(name, []):
-            fields.append({"name": computed["name"], "expression": {"sql": computed["sql"]}, "datatype": computed["datatype"],
+            fields.append({"name": computed["name"], "expression": expression(computed["sql"]), "datatype": computed["datatype"],
                            "description": computed["description"], "dimension": {"is_time": True}})
         datasets.append({
             "name": name,
-            "source": name,
+            "source": f"{SOURCE_PREFIX}.{name}",
             "primary_key": spec["primary_key"],
             "description": description,
             "ai_context": context(spec["synonyms"], spec["instructions"]),
@@ -319,7 +328,7 @@ def build_model(cfg):
         relationships.append(relationship)
     metrics = []
     for name, sql, kind, description, synonyms, instructions in METRICS:
-        metric = {"name": name, "expression": {"sql": sql}, "datatype": kind, "description": description}
+        metric = {"name": name, "expression": expression(sql), "datatype": kind, "description": description}
         extra = context(synonyms, instructions)
         if extra:
             metric["ai_context"] = extra
@@ -340,12 +349,12 @@ def build_model(cfg):
 
 def to_released(model):
     """Convert the draft-shaped model to OSI 0.1.1: wrapped in semantic_model, ANSI_SQL dialects, no data types."""
-    def expression(node):
+    def released_expression(node):
         return {"dialects": [{"dialect": "ANSI_SQL", "expression": node["expression"]["sql"]}]}
 
     def strip(item):
         copy = {key: value for key, value in item.items() if key != "datatype"}
-        copy["expression"] = expression(item)
+        copy["expression"] = released_expression(item)
         return copy
 
     body = {key: value for key, value in model.items() if key != "version"}
