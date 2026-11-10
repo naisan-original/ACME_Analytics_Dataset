@@ -7,3 +7,9 @@ dependencies = [
     "pandas>=3.1.1",
     "pyyaml>=6.0.3",
 ]
+
+[dependency-groups]
+dev = [
+    "duckdb>=2.0.0",
+    "jsonschema>=4.26.0",
+]

@@ -37,6 +37,18 @@ config produce identical output. To skip the build, download the zip from
 `tools/tune.py` searches config values toward the KPI targets, and `tools/answer_key.py` writes the
 facilitator key from the generated data.
 
+## Semantic model
+
+[`semantic/`](semantic/) describes the dataset in [Apache Ossie](https://github.com/apache/ossie) format,
+formerly Open Semantic Interchange (OSI): datasets, the 15 recommended joins, 27 metrics and context for
+AI agents. Rebuild and check it with:
+
+    uv sync --dev
+    uv run python tools/semantic_model.py --check
+
+The check validates the YAML against the official schemas and runs every metric against the CSVs.
+See [semantic/README.md](semantic/README.md).
+
 ## Loading the data
 
 - `region` uses the value `NA` for North America, as the spec requires. Many tools, including pandas
@@ -48,7 +60,7 @@ facilitator key from the generated data.
 ## License
 
 - **Code:** [MIT](LICENSE).
-- **Dataset** (the generated CSVs and the data dictionary): [CC BY 4.0](LICENSE-DATA), Copyright (c) 2026 Naisan.
+- **Dataset** (the generated CSVs, the data dictionary and the semantic model in `semantic/`): [CC BY 4.0](LICENSE-DATA), Copyright (c) 2026 Naisan.
 - **Source lists in `sources/`:** Wikidata (CC0) and exchange listings (ODC-PDDL-1.0). See [sources/README.md](sources/README.md).
 
 These licenses cover this project's own work only. They grant no rights to any company name or

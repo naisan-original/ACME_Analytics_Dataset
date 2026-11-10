@@ -21,3 +21,6 @@ facilitator/
 
 # Local screenshots of tools under test.
 Screenshots/
+
+# Downloaded Ossie schemas used by tools/semantic_model.py --check.
+.cache/

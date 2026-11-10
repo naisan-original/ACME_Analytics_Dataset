@@ -26,6 +26,7 @@
 | `contracts.csv` | 20,275 | Contracts |
 | `touchpoints.csv` | 103,917 | Customer and prospect interactions |
 | `data_dictionary.md` | | Column definitions and metric formulas |
+| `semantic/` | | Semantic model in Apache Ossie (formerly OSI) format: tables, joins, metrics and AI context. See `semantic/README.md` |
 
 ## Before you load it
 
@@ -49,6 +50,7 @@ Four dimensions are shared by four fact tables. Not every table joins directly t
 - **If you must link them:** `user_usage_month` matches the central fact on account, product and month together. A contract is active in a month when `start_month_id` <= month <= `end_month_id`, and `end_month_id` can fall after the data window. `touchpoints` has no product and includes prospects, so it has no clean link to the central fact.
 - **Do not join these columns to `dim_month`:** `customer_since_month_id` and `churn_month_id` in `dim_account`, and `hire_month_id` and `termination_month_id` in `dim_employee`. They are descriptive dates and mostly blank. A second route to `dim_month` can make a fiscal year filter apply to the wrong date. Automatic join detection may suggest them.
 - **ARR is a monthly snapshot.** Do not sum it across months. Use the last month of the period.
+- **Tools that read Apache Ossie or OSI** can load the joins and metrics from `semantic/` instead of detecting them.
 
 ## License
 
