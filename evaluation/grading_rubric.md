@@ -4,7 +4,7 @@
 
 Use this rubric to score any analysis of the ACME dataset, whether it comes from a human analyst, an AI agent or a BI tool, against what the generator engineered. Score the output as submitted, and don't give credit for what the author probably meant.
 
-Rubric version 1.2, for dataset v1.2. Reference numbers live in [`answer_key.md`](answer_key.md), which is regenerated from the data with every build. Where this rubric and the key disagree, the key wins.
+Rubric version 1.2, for dataset v1.2 and later. Reference numbers live in [`answer_key.md`](answer_key.md), which is regenerated from the data with every build. Where this rubric and the key disagree, the key wins.
 
 ## Test prompt
 
@@ -126,7 +126,7 @@ Apply these after summing:
 
 1. Read the whole output. If it's an image-only PDF, render it at high zoom (for example with `pymupdf`) and read every section.
 2. List each quantitative claim. Check the headline numbers against `answer_key.md`, and query the CSVs (DuckDB works well) for any claim beyond the key.
-3. Fill in the scorecard below. Keep scorecards for outputs you don't want to publish outside the repo, or in the git-ignored `facilitator/` folder.
+3. Fill in the scorecard below and save it as `evaluation/grades/<date>_<source>_<short-title>.md`. That folder is public, so leave out private file paths and client details.
 
 ## Scorecard template
 

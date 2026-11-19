@@ -25,7 +25,7 @@ def staging_config(cfg):
     staged["paths"].update(
         output_dir=str(BUILD_DIR / "lite"),
         dictionary=str(BUILD_DIR / "data_dictionary.md"),
-        facilitator_dir=str(BUILD_DIR / "facilitator"),
+        truth_dir=str(BUILD_DIR / "truth"),
     )
     return staged
 
@@ -38,10 +38,10 @@ def publish(cfg):
         final.rename(BUILD_DIR / "lite.previous")
     (BUILD_DIR / "lite").rename(final)
     os.replace(BUILD_DIR / "data_dictionary.md", cfg["paths"]["dictionary"])
-    facilitator = Path(cfg["paths"]["facilitator_dir"])
-    facilitator.mkdir(parents=True, exist_ok=True)
-    for path in (BUILD_DIR / "facilitator").iterdir():
-        os.replace(path, facilitator / path.name)
+    truth = Path(cfg["paths"]["truth_dir"])
+    truth.mkdir(parents=True, exist_ok=True)
+    for path in (BUILD_DIR / "truth").iterdir():
+        os.replace(path, truth / path.name)
     # The answer key quotes the data, so it must be rebuilt for each new dataset.
     (Path(cfg["paths"]["evaluation_dir"]) / "answer_key.md").unlink(missing_ok=True)
     shutil.rmtree(BUILD_DIR)
@@ -89,7 +89,7 @@ def main():
     }
     counts = export.write_tables(staged, tables)
     export.write_dictionary(staged, counts)
-    export.write_facilitator(staged, accounts, is_ai, customers)
+    export.write_truth(staged, accounts, is_ai, customers)
     publish(cfg)
     print({name: f"{count:,}" for name, count in counts.items()})
     print(f"total rows: {sum(counts.values()):,} in {time.time() - started:.0f}s")

@@ -94,11 +94,17 @@ def assign_ai_forward(cfg, accounts, chosen, since, rng):
     return eligible & (rng.random(len(accounts)) < adoption_probability(cfg, accounts))
 
 
-def draw_land_acv(cfg, rng, segment, fy, is_ai):
+def land_scale(cfg, month):
+    """Land-size multiplier, interpolated between fiscal-year midpoints so it never steps at a year boundary."""
+    scales = cfg["growth"]["land_acv_scale"]
+    return float(np.interp(month, [12 * fy + 5.5 for fy in range(len(scales))], scales))
+
+
+def draw_land_acv(cfg, rng, segment, month, is_ai):
     bounds = cfg["growth"]["land_acv"][segment]
     low, high = np.log(bounds["low"]), np.log(bounds["high"])
     acv = np.exp(np.clip(rng.normal((low + high) / 2, (high - low) / 4), low - 0.3, high + 0.3))
-    acv *= cfg["growth"]["land_acv_scale"][fy]
+    acv *= land_scale(cfg, month)
     return acv * (cfg["ai_forward"]["land_acv_multiplier"] if is_ai else 1.0)
 
 
@@ -199,8 +205,12 @@ def renew_healthy(cfg, rng, account, live, renewal, disrupted, ae_matrix):
     contraction = renewal_cfg["contraction_rate"] * loss
     if account.region == "EMEA" and emea["start_month"] <= renewal <= emea["end_month"]:
         contraction += emea["extra_contraction"]
+    expansion_prob = renewal_cfg["expansion_prob"][fy]
     if disrupted >= 0 and 0 <= renewal - disrupted <= turnover["risk_window_months"]:
+        # Lost relationship: more churn and contraction, less expansion, for one renewal cycle.
         churn += turnover["extra_churn"]
+        contraction += turnover["extra_contraction"]
+        expansion_prob *= 1 - turnover["expansion_damping"]
 
     if rng.random() < churn:
         for product in list(live):
@@ -219,7 +229,7 @@ def renew_healthy(cfg, rng, account, live, renewal, disrupted, ae_matrix):
         elif account.grower and low_age <= age <= high_age + 0.5:
             factor = 1 + rng.uniform(*renewal_cfg["grower_growth"]) * renewal_cfg["expansion_scale"][fy]
             close_and_renew(cfg, rng, account, live, product, renewal, term, factor, False, "expand", ae_matrix)
-        elif roll < contraction + renewal_cfg["expansion_prob"][fy]:
+        elif roll < contraction + expansion_prob:
             factor = 1 + rng.uniform(*renewal_cfg["expansion_size"]) * renewal_cfg["expansion_scale"][fy]
             close_and_renew(cfg, rng, account, live, product, renewal, term, factor, False, "expand", ae_matrix)
         else:
@@ -303,8 +313,7 @@ def run(cfg, accounts, ae_matrix, disrupted, chosen, since, is_ai, calendar):
             account.pivot_months = int(rng.integers(low, high + 1))
             account.t80 = month_share_reaches(cfg, account, 0.80)
 
-        fy = fiscal_index(account.since)
-        acv = draw_land_acv(cfg, rng, account.segment, fy, account.is_ai)
+        acv = draw_land_acv(cfg, rng, account.segment, account.since, account.is_ai)
         first = weighted_pick(rng, growth["land_product_weights"])
         products = [first]
         if rng.random() < growth["two_product_land_share"]:

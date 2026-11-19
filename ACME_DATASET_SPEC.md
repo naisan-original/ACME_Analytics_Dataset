@@ -30,8 +30,12 @@ acme-dataset/
   sources/               # cached raw company lists + README noting source/URL/date
   output/lite/*.csv
   output/data_dictionary.md
-  facilitator/answer_key.md   # NOT part of the dataset; hidden truth + walkthrough
-  facilitator/segment_truth.csv  # account_id, is_ai_forward (hidden label)
+  evaluation/                 # NOT part of the dataset; published separately as a spoiler kit
+    answer_key.md             # hidden truth + walkthrough
+    grading_rubric.md         # test prompt + scoring rubric
+    truth/segment_truth.csv   # account_id, is_ai_forward (hidden label)
+    truth/pivot_truth.csv     # pivot onset and duration per AI-forward account
+    grades/                   # scorecards of graded outputs
 ```
 
 ---
@@ -59,7 +63,7 @@ Grain: account × product × month, rows only while the account holds an active 
 ### 2.2 dim_account (~15,000)
 account_id, account_name (real company), hq_country, hq_city, region (NA / EMEA / APAC / LATAM), industry, sub_industry, annual_revenue_band, employee_band, fortune_rank (nullable), global2000_rank (nullable), segment (Strategic / Enterprise / Upper Mid-Market), account_status (Customer / Former Customer / Prospect), customer_since_month_id (nullable), churn_month_id (nullable), tech_signals (a semicolon list of marketing-enrichment style topics, e.g. "Snowflake;dbt;Kubernetes;LLM Ops;Vector DB"). AI-forward accounts skew toward AI-related topics, but **other High Tech and some non-tech accounts have them too**. This is a soft clue, not a label.
 
-**Do NOT include** is_ai_forward or anything equivalent. That lives only in facilitator/segment_truth.csv.
+**Do NOT include** is_ai_forward or anything equivalent. That lives only in evaluation/truth/segment_truth.csv.
 
 ### 2.3 dim_product (4)
 | product_id | product_name | work_unit_label | price_multiplier (vs $30 base) |
@@ -104,7 +108,7 @@ Rules:
 - Revenue floor ~$200–300M. Size distribution is a long tail: ~500 in $50B+, ~1,500 in $10–50B, ~3,500 in $2–10B, ~9,500 in $200M–2B.
 - 60% US HQ / 40% rest of world (EMEA ~22%, APAC ~14%, LATAM ~4%).
 - Revenue figures are **bands**, not reported numbers.
-- If real lists can't reach 15K after dedupe, fill the remainder with plausible fictional names in the lowest band and flag them in facilitator files only.
+- If real lists can't reach 15K after dedupe, fill the remainder with plausible fictional names in the lowest band and flag them in evaluation/truth only.
 - Industry taxonomy (~10 industries, ~40 sub-industries): High Tech (Software, Internet & Platforms, Semiconductors, IT Services, Hardware), Financial Services, Healthcare & Life Sciences, Retail & CPG, Manufacturing, Energy & Utilities, Telecom & Media, Transportation & Logistics, Public Sector & Education, Professional Services.
 - High Tech should be ~20–22% of customers by count and ~28–30% of ARR by FY24.
 
@@ -216,7 +220,7 @@ Real-world analog for narrative realism: Snowflake's reported NRR fell from 178%
 
 ---
 
-## 10. Facilitator answer key (facilitator/answer_key.md)
+## 10. Answer key (evaluation/answer_key.md)
 
 Include:
 - The story in five sentences.

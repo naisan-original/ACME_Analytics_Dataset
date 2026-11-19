@@ -32,7 +32,7 @@ def main():
     usage = pd.read_csv(folder / "user_usage_month.csv")
     touchpoints = pd.read_csv(folder / "touchpoints.csv")
     products = pd.read_csv(folder / "dim_product.csv")
-    truth = pd.read_csv(Path(cfg["paths"]["facilitator_dir"]) / "segment_truth.csv")
+    truth = pd.read_csv(Path(cfg["paths"]["truth_dir"]) / "segment_truth.csv")
 
     ids = accounts["account_id"].to_numpy()
     month_ids = months["month_id"].tolist()
@@ -112,7 +112,7 @@ def main():
     precision = is_ai[tech_customers & core].mean()
     recall = (is_ai & core).sum() / is_ai.sum()
 
-    pivot = pd.read_csv(Path(cfg["paths"]["facilitator_dir"]) / "pivot_truth.csv").merge(accounts[["account_id", "annual_revenue_band"]])
+    pivot = pd.read_csv(Path(cfg["paths"]["truth_dir"]) / "pivot_truth.csv").merge(accounts[["account_id", "annual_revenue_band"]])
     last = month_ids.index(202610)
     work = fact[fact["month_id"] == 202610]
     work = work[work["work_units"] > 0].groupby("account_id").apply(lambda g: np.average(g["api_share"], weights=g["work_units"]), include_groups=False)
@@ -135,6 +135,23 @@ def main():
         })
     gradient = pd.DataFrame(gradient_rows)
 
+    employees = pd.read_csv(folder / "dim_employee.csv", keep_default_na=False, na_values=[""])
+    turnover = cfg["red_herrings"]["rep_turnover"]
+    leavers = employees[(employees["region"] == turnover["territory"])
+                        & employees["termination_month_id"].between(month_ids[turnover["start_month"]], month_ids[turnover["end_month"]])]["employee_id"]
+    before = fact[fact["month_id"] == month_ids[turnover["start_month"] - 1]]
+    owned = set(before.loc[before["ae_employee_id"].isin(leavers) | before["csm_employee_id"].isin(leavers), "account_id"])
+    window = fact[fact["month_id"].between(month_ids[turnover["start_month"]], month_ids[turnover["end_month"]])]
+    peers = set(window["account_id"]) - owned
+    reassigned = np.isin(ids, sorted(owned)) & plain
+    peer_mask = np.isin(ids, sorted(peers)) & plain
+    turnover_rows = pd.DataFrame([
+        {"Group (excl. High Tech)": name, "Accounts at FY25 start": int((mask & (arr[:, 47] > 0)).sum()),
+         "FY25 GRR": round(retention(arr, 4, mask)[0], 1), "FY25 NDR": round(retention(arr, 4, mask)[1], 1),
+         "FY26 NDR": round(retention(arr, 5, mask)[1], 1)}
+        for name, mask in (("Reassigned after a US-West departure", reassigned), ("All other accounts", peer_mask))
+    ])
+
     contracts = pd.read_csv(folder / "contracts.csv")
     fiscal = months.set_index("month_id")["fiscal_year"]
     churned = contracts[contracts["outcome"] == "Churned"]
@@ -143,7 +160,7 @@ def main():
     trap = pd.DataFrame({"FY": by_end.index, "Churned contracts by start year (wrong)": by_start.values, "Churned contracts by end year (right)": by_end.values})
 
     lines = [
-        "# ACME Analytics dataset: facilitator answer key",
+        "# ACME Analytics dataset: answer key",
         "",
         "**Spoiler. Kept outside the dataset folder on purpose: don't give this file to the analyst or tool under test.** All numbers come from the generated output.",
         "",
@@ -163,7 +180,7 @@ def main():
         "", markdown_table(membership), "",
         "- Smaller companies adopt first. They are more likely to be in the segment and move through the pivot faster, and the largest accounts start it last. Many small accounts landed late, so their median onset is not the earliest, but they are hit hardest by FY26. The damage shows up as a gradient by revenue band.",
         "- Pivot onset is staggered from Q3 FY24 through Q2 FY26. After onset, API share climbs from about 5% to over 90%, Service Accounts appear, and human Creators and Explorers fade.",
-        "- The label exists only in `facilitator/segment_truth.csv` (not published), and `pivot_truth.csv` has each account's onset. No single dataset column encodes it.",
+        "- The label exists only in `evaluation/truth/segment_truth.csv`, and `evaluation/truth/pivot_truth.csv` has each account's onset. No column in the dataset encodes it.",
         "",
         "## KPI results",
         "",
@@ -175,7 +192,7 @@ def main():
         f"1. **Top-line ARR is still growing:** ${overall.iloc[3]['arr_m']}M in FY24 to ${overall.iloc[5]['arr_m']}M in FY26.",
         f"2. **GRR and NDR are falling:** see the overall table.",
         f"3. **Slice by region. EMEA is a red herring:** new-logo share dips in FY25 Q1-Q3 and, excluding High Tech, EMEA GRR goes {emea['FY24 excl. High Tech']}% to {emea['FY25 excl. High Tech']}% to {emea['FY26 excl. High Tech']}%. The hidden segment sits in every region, so compare the whole-region and excl. High Tech columns below.", "", markdown_table(by_region), "",
-        "4. **Slice by owner. Turnover is a red herring:** US-West lost AEs and CSMs in FY25. Reassigned accounts show fewer touches and a modest churn bump, but it does not explain the decline.",
+        f"4. **Slice by owner. Turnover is a red herring:** US-West lost {len(leavers)} AEs and CSMs in FY25 H1. Their {len(owned):,} accounts were reassigned, got fewer touches, and retained visibly worse for about a year, then recovered. It is tempting but explains little of the FY24-to-FY26 decline.", "", markdown_table(turnover_rows), "",
         "5. **Slice by industry. High Tech stands out:**", "", markdown_table(by_industry), "",
         f"6. **Look at product mix. Analytics is falling:** in the hidden segment, Analytics active users went from {analytics_users[0]:,} at FY24 end to {analytics_users[1]:,} at FY26 end, and seats from {analytics_seats[0]:,} to {analytics_seats[1]:,}.",
         f"7. **Look at API share and Service Account users:** Service Accounts seen in the hidden segment went from {service_growth[0]:,} to {service_growth[1]:,} between FY24 end and FY26 end.", "", markdown_table(share), "",

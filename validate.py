@@ -250,11 +250,33 @@ def check_red_herrings(cfg, tables, arr, ids):
     others = counts.reindex(sorted(peers)).fillna(0).mean()
     check("Reassigned accounts get fewer touches than peers", affected < others, f"{affected:.2f} vs {others:.2f}")
 
+    # The herring must be tempting: outside High Tech, reassigned accounts visibly retain worse in FY25.
+    plain_tech = (accounts["industry"] != "High Tech").to_numpy()
+    reassigned = np.isin(ids, sorted(owned)) & plain_tech
+    others_mask = np.isin(ids, sorted(peers)) & plain_tech
+    hit, base = retention(arr, 4, reassigned)[1], retention(arr, 4, others_mask)[1]
+    check("Reassigned accounts (excl. High Tech) have FY25 NDR at least 3 pts below peers", hit <= base - 3, f"{hit:.1f} vs {base:.1f}")
+
+
+def check_no_land_cliff(tables):
+    """New-logo land size may drift, but must not step at a fiscal-year boundary."""
+    fact = tables["fct_account_product_month"]
+    months = tables["dim_month"].set_index("month_id")
+    first = fact[fact["arr"] > 0].groupby("account_id")["month_id"].min()
+    landed = fact[fact["arr"] > 0].merge(first.rename("first_month"), left_on="account_id", right_index=True)
+    landed = landed[landed["month_id"] == landed["first_month"]].groupby("account_id").agg(arr=("arr", "sum"), month_id=("month_id", "first"))
+    landed = landed[landed["month_id"] >= 202211]
+    quarterly = landed.groupby(landed["month_id"].map(months["fiscal_quarter"]))["arr"].median()
+    steps = quarterly / quarterly.shift(1) - 1
+    worst = steps.min()
+    check("No quarter-to-quarter drop above 25% in median new-logo ARR (FY23 on)", worst >= -0.25,
+          f"worst {worst:.0%} at {steps.idxmin()}")
+
 
 def check_pivot_behavior(cfg, tables):
     """Spec Section 6.3: how fully pivoted accounts behave, compared with just before onset."""
     fact = tables["fct_account_product_month"]
-    pivot = pd.read_csv(Path(cfg["paths"]["facilitator_dir"]) / "pivot_truth.csv")
+    pivot = pd.read_csv(Path(cfg["paths"]["truth_dir"]) / "pivot_truth.csv")
     done = pivot[pivot["onset_month"] + pivot["pivot_months"] <= 68]
     position = {value: index for index, value in enumerate(tables["dim_month"]["month_id"])}
     joined = fact[fact["account_id"].isin(done["account_id"])].merge(done, on="account_id")
@@ -269,7 +291,7 @@ def check_pivot_behavior(cfg, tables):
     engine = ratio("P3", "work_units")
     check("Data Engine work rises 2-3x", 2.0 <= engine <= 3.0, f"{engine:.2f}x")
     users = ratio("P2", "active_users")
-    check("Analytics active users fall 70-80%", 0.20 <= users <= 0.30, f"{1 - users:.0%} fall")
+    check("Analytics active users fall 70-80%", 0.20 <= users <= 0.30, f"{1 - users:.1%} fall")
     sessions = ratio("P2", "ui_sessions")
     check("Analytics UI sessions fall 70-80%", 0.20 <= sessions <= 0.30, f"{1 - sessions:.0%} fall")
     transformation = ratio("P1", "work_units")
@@ -307,7 +329,7 @@ def main():
     cfg = load_config(args.config)
     tables = load(cfg)
 
-    truth = pd.read_csv(Path(cfg["paths"]["facilitator_dir"]) / "segment_truth.csv")
+    truth = pd.read_csv(Path(cfg["paths"]["truth_dir"]) / "segment_truth.csv")
     ids = tables["dim_account"]["account_id"].to_numpy()
     is_ai = truth.set_index("account_id")["is_ai_forward"].reindex(ids).to_numpy().astype(bool)
     months = tables["dim_month"]["month_id"].tolist()
@@ -317,6 +339,7 @@ def main():
     check_segment(arr, is_ai, tables["dim_account"])
     check_spread_and_gradient(cfg, tables, arr, is_ai)
     check_churn_runs_to_end(tables)
+    check_no_land_cliff(tables)
     check_reconciliation(tables)
     check_distributions(cfg, tables)
     check_accounts(tables)

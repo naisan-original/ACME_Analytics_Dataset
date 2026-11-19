@@ -19,8 +19,9 @@ The build spec is [ACME_DATASET_SPEC.md](ACME_DATASET_SPEC.md).
 
 ## Status
 
-The generator is complete. `validate.py` passes 75 of 76 checks and exits non-zero because of one
-miss: FY26 NDR is 0.7 points outside the 2-point tolerance. It is left as natural variation.
+The generator is complete. `validate.py` passes 76 of 78 checks and exits non-zero because of two
+misses, each 0.1 points past its limit: FY21 NDR and the fall in Analytics active users. They are left
+as natural variation.
 
 ## Setup
 
@@ -42,7 +43,8 @@ answer key to `evaluation/` from the generated data.
 [`evaluation/`](evaluation/) holds the answer key and a grading rubric with a standard test prompt, for
 scoring how well an analyst or analytics tool finds the story in the data. It gives the answer away, so
 it is kept outside the dataset folder and out of the dataset zip. Don't upload it to the tool you're
-testing. See [evaluation/README.md](evaluation/README.md).
+testing. It also holds the hidden-label files the generator writes (`evaluation/truth/`) and example
+scorecards (`evaluation/grades/`). See [evaluation/README.md](evaluation/README.md).
 
 ## Semantic model
 

@@ -63,6 +63,10 @@ def score(cfg, arr, is_ai, contracts, table):
         return emea[window].mean()
     change = emea_share(48, 56) / emea_share(36, 44) - 1
     total += (max(abs(change + 0.20) - 0.06, 0) * 60) ** 2
+    # Land size may drift down, but a year-over-year drop above 12% reads as a planted policy change.
+    scales = cfg["growth"]["land_acv_scale"]
+    for previous, current in zip(scales, scales[1:]):
+        total += (max(0.88 - current / previous, 0) * 100) ** 2
     total += (max(abs(ai_share - 0.225) - 0.02, 0) * 300) ** 2
     total += (max(abs(tech_share - 0.29) - 0.008, 0) * 300) ** 2
     return total

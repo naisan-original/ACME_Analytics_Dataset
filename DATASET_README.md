@@ -17,14 +17,14 @@
 
 | File | Rows | Contents |
 |---|---|---|
-| `fct_account_product_month.csv` | 197,834 | Central fact: account, product and month |
+| `fct_account_product_month.csv` | 197,447 | Central fact: account, product and month |
 | `dim_account.csv` | 15,000 | Accounts |
 | `dim_product.csv` | 4 | Products |
 | `dim_month.csv` | 72 | Calendar, Nov 2020 to Oct 2026. The fiscal year ends Oct 31 |
 | `dim_employee.csv` | 145 | Fictional sales and customer success staff |
-| `user_usage_month.csv` | 1,786,479 | Stratified sample of user activity |
-| `contracts.csv` | 20,409 | Contracts |
-| `touchpoints.csv` | 103,824 | Customer and prospect interactions |
+| `user_usage_month.csv` | 1,739,939 | Stratified sample of user activity |
+| `contracts.csv` | 20,290 | Contracts |
+| `touchpoints.csv` | 104,098 | Customer and prospect interactions |
 | `data_dictionary.md` | | Column definitions and metric formulas |
 | `semantic/` | | Semantic model in Apache Ossie (formerly OSI) format: tables, joins, metrics and AI context. See `semantic/README.md` |
 

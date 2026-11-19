@@ -1,4 +1,4 @@
-"""Assemble the star schema, write CSVs, the data dictionary and the facilitator files."""
+"""Assemble the star schema, write CSVs, the data dictionary and the hidden-truth files for evaluation/."""
 from pathlib import Path
 
 import numpy as np
@@ -207,8 +207,9 @@ def write_dictionary(cfg, row_counts):
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_facilitator(cfg, accounts, is_ai, customers):
-    folder = Path(cfg["paths"]["facilitator_dir"])
+def write_truth(cfg, accounts, is_ai, customers):
+    """Hidden labels for grading. Written to evaluation/truth, never into the dataset folder."""
+    folder = Path(cfg["paths"]["truth_dir"])
     folder.mkdir(parents=True, exist_ok=True)
     pd.DataFrame({"account_id": accounts["account_id"], "is_ai_forward": is_ai.astype(int)}).to_csv(folder / "segment_truth.csv", index=False)
     pd.DataFrame(

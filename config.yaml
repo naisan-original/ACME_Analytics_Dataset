@@ -10,7 +10,7 @@ paths:
   company_sources: [sources/wikidata_listed_companies.csv, sources/us_listed_companies.csv]
   output_dir: output/lite
   dictionary: output/data_dictionary.md
-  facilitator_dir: facilitator
+  truth_dir: evaluation/truth
   evaluation_dir: evaluation
 
 synthetic_notice: "All commercial relationships, usage, and notes are fictional. Company names are used for realism only."
@@ -53,7 +53,7 @@ growth:
     Strategic: {low: 150000, high: 1000000}
     Enterprise: {low: 40000, high: 200000}
     Upper Mid-Market: {low: 15000, high: 60000}
-  land_acv_scale: [0.461, 0.526, 0.697, 0.808, 0.778, 0.411]
+  land_acv_scale: [0.458, 0.521, 0.697, 0.806, 0.775, 0.706]
   two_product_land_share: 0.30
   land_product_weights: {P2: 0.55, P1: 0.30, P3: 0.10, P4: 0.05}
   strategic_multi_year_share: 0.10
@@ -81,8 +81,8 @@ renewal:
   grower_age_years: [1, 3]
   expansion_prob: [0.60, 0.60, 0.58, 0.55, 0.55, 0.55]
   expansion_size: [0.05, 0.35]
-  expansion_scale: [0.726, 1.929, 1.234, 1.28, 1.138, 1.35]
-  loss_multiplier_by_fy: [2.366, 1.022, 1.002, 1.246, 1.001, 0.984]
+  expansion_scale: [0.741, 1.962, 1.28, 1.278, 1.138, 1.369]
+  loss_multiplier_by_fy: [2.366, 1.218, 0.984, 1.246, 0.988, 1.006]
   cross_sell_prob: [0.38, 0.38, 0.38, 0.38, 0.38, 0.38]
   cross_sell_size: [0.15, 0.45]
   cross_sell_weights: {P3: 0.45, P4: 0.25, P1: 0.20, P2: 0.10}
@@ -118,7 +118,7 @@ ai_forward:
     "$10-50B": [8, 18]
     "$50B+": [10, 22]
   min_months_before_onset: 3
-  land_acv_multiplier: 1.589
+  land_acv_multiplier: 1.614
   pre_pivot_churn: 0.03
   pre_pivot_expansion_prob: 0.85
   pre_pivot_expansion: [0.30, 0.80]
@@ -132,10 +132,10 @@ ai_forward:
   analytics_only_exit_share: 0.65
   analytics_only_exit_prob: 0.9
   product_curves:
-    P1: {work_multiplier: [0.9, 1.1], end_api_share: 0.95}
-    P2: {work_multiplier: [1.56, 1.72], end_api_share: 0.76}
-    P3: {work_multiplier: [2.0, 3.0], end_api_share: 0.96}
-    P4: {work_multiplier: [1.1, 1.5], end_api_share: 0.95}
+    P1: {work_multiplier: [0.9, 1.1], end_api_share: 0.97}
+    P2: {work_multiplier: [1.56, 1.72], end_api_share: 0.79}
+    P3: {work_multiplier: [2.0, 3.0], end_api_share: 0.985}
+    P4: {work_multiplier: [1.1, 1.5], end_api_share: 0.97}
   analytics_seat_cut: [0.30, 0.55]
   analytics_churn_prob: 0.85
   engine_seat_cut: [0.0, 0.15]
@@ -190,7 +190,9 @@ red_herrings:
     end_month: 55
     ae_leavers: 5
     csm_leavers: 3
-    extra_churn: 0.035
+    extra_churn: 0.07
+    extra_contraction: 0.12
+    expansion_damping: 0.5
     risk_window_months: 12
     touch_dip: 0.45
     touch_dip_months: 6

@@ -16,8 +16,6 @@ output/
 
 output.building/
 
-# Facilitator material holds the hidden truth and is never part of the dataset.
-facilitator/
 
 # Local screenshots of tools under test.
 Screenshots/
