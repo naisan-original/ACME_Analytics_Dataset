@@ -151,8 +151,10 @@ Price set at contract start; renewals carry 0–5% uplift when healthy, and a 5�
 
 ### 6.3 Hidden AI-forward segment (the nugget)
 - ~600–700 customers (≈ 12–15% of customers, ≈ 20–25% of FY24 ARR). All in High Tech, concentrated in Software, Internet & Platforms, and Semiconductors. Not every High Tech account is AI-forward (keep ~35–40% of High Tech normal so "High Tech" alone is a partial signal).
+- **Membership is a random draw, never a rule.** Each High Tech customer that lands before the pivot window closes becomes AI-forward with a probability set by sub-industry and company size. The three core sub-industries have high odds, Hardware and IT Services have lower odds, and no sub-industry is all-in or all-out. Sub-industry must be a strong clue, not a label.
+- **Size gradient (smaller adopts first):** odds fall as revenue band rises, and larger accounts start the pivot later and take longer to finish it. By FY26 the smallest accounts are deep into the pivot and churning, mid-size accounts are contracting, and the largest are only starting. This gives an emerging gradient by revenue band, not a cliff.
 - **FY21–FY24:** best customers in the base. High utilization (40–60%), heavy Analytics UI use, fast expansion. They inflate early NDR.
-- **Pivot onset:** staggered per account, drawn from Q3 FY24 through Q2 FY26 (an S-curve, not a cliff).
+- **Pivot onset:** staggered per account, drawn from Q3 FY24 through Q2 FY26 (an S-curve, not a cliff), skewed early for small accounts and late for large ones.
 - **After onset (per account, over 6–18 months):**
   - api_share: ~5% → ~60% → 90%+.
   - Service Account users appear and grow. Human Creator and Explorer users decline.

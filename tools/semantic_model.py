@@ -101,7 +101,9 @@ DATASETS = {
         "instructions": (
             "One row per contract. A contract is active in a month when start_month_id <= month <= end_month_id; "
             "summing acv over active contracts reconciles to ARR. The relationship to dim_month uses "
-            "start_month_id only, so it slices bookings by start month."
+            "start_month_id only, so it slices bookings by start month. outcome is set when a contract ends, so contracts "
+            "that started in the last year are mostly still Active: count churn by end_month_id, or use churn_flag "
+            "in fct_account_product_month."
         ),
     },
     "touchpoints": {

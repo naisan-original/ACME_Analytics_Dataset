@@ -80,6 +80,35 @@ def check_segment(arr, is_ai, accounts_table):
         print(f"[INFO] Hidden segment logo churn FY{21 + fy}: {(arr[base, end] == 0).mean():.1%} (spec: ~25-35%)")
 
 
+def check_spread_and_gradient(cfg, tables, arr, is_ai):
+    """Sub-industry must be a clue, not a label, and smaller companies must move first (spec 6.3)."""
+    accounts = tables["dim_account"]
+    ever = (arr > 0).any(axis=1)
+    high_tech = (accounts["industry"] == "High Tech").to_numpy()
+    rates = pd.Series(is_ai[ever & high_tech]).groupby(accounts["sub_industry"].to_numpy()[ever & high_tech]).mean()
+    check("No High Tech sub-industry is all-in or all-out of the segment", rates.max() <= 0.9 and rates.min() >= 0.1,
+          ", ".join(f"{name} {rate:.0%}" for name, rate in rates.items()))
+    core = accounts["sub_industry"].isin(cfg["ai_forward"]["sub_industries"]).to_numpy()
+    precision = is_ai[ever & high_tech & core].mean()
+    check("Core sub-industries are a clue, not a label (60-85% in segment)", 0.60 <= precision <= 0.85, f"{precision:.0%}")
+    bands = ["$200M-2B", "$2-10B", "$10-50B", "$50B+"]
+    revenue_band = accounts["annual_revenue_band"].to_numpy()
+    grr = [retention(arr, 5, high_tech & (revenue_band == band))[0] for band in bands[:3]]
+    check("High Tech FY26 GRR rises with company size (smallest worst)", grr[0] < grr[1] < grr[2],
+          ", ".join(f"{band} {value:.1f}" for band, value in zip(bands, grr)))
+
+
+def check_churn_runs_to_end(tables):
+    """Churn must keep going to the last month, not stop at FY25 (spec 6.3)."""
+    accounts = tables["dim_account"]
+    months = tables["dim_month"].set_index("month_id")
+    churned = accounts["churn_month_id"].dropna().astype(int)
+    by_fy = churned.map(months["fiscal_year"]).value_counts()
+    check("Logo churn is highest in FY26", by_fy.idxmax() == "FY26", ", ".join(f"{fy} {n}" for fy, n in sorted(by_fy.items())))
+    quarters = churned[churned >= 202511].map(months["fiscal_quarter"]).value_counts().sort_index()
+    check("FY26 Q4 logo churn at least FY26 Q1", quarters.iloc[-1] >= quarters.iloc[0], ", ".join(f"{q} {n}" for q, n in quarters.items()))
+
+
 def check_reconciliation(tables):
     fact = tables["fct_account_product_month"]
     contracts = tables["contracts"]
@@ -286,6 +315,8 @@ def main():
 
     check_kpis(cfg, arr, is_ai)
     check_segment(arr, is_ai, tables["dim_account"])
+    check_spread_and_gradient(cfg, tables, arr, is_ai)
+    check_churn_runs_to_end(tables)
     check_reconciliation(tables)
     check_distributions(cfg, tables)
     check_accounts(tables)

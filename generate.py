@@ -43,7 +43,7 @@ def publish(cfg):
     for path in (BUILD_DIR / "facilitator").iterdir():
         os.replace(path, facilitator / path.name)
     # The answer key quotes the data, so it must be rebuilt for each new dataset.
-    (facilitator / "answer_key.md").unlink(missing_ok=True)
+    (Path(cfg["paths"]["evaluation_dir"]) / "answer_key.md").unlink(missing_ok=True)
     shutil.rmtree(BUILD_DIR)
 
 

@@ -696,9 +696,10 @@ semantic_model:
     - contract_id
     description: One row per contract. Sum ACV of active contracts to reconcile to central ARR.
     ai_context:
-      instructions: One row per contract. A contract is active in a month when start_month_id <= month <= end_month_id; summing
+      instructions: 'One row per contract. A contract is active in a month when start_month_id <= month <= end_month_id; summing
         acv over active contracts reconciles to ARR. The relationship to dim_month uses start_month_id only, so it slices
-        bookings by start month.
+        bookings by start month. outcome is set when a contract ends, so contracts that started in the last year are mostly
+        still Active: count churn by end_month_id, or use churn_flag in fct_account_product_month.'
       synonyms:
       - deals
       - bookings
@@ -794,7 +795,8 @@ semantic_model:
         dialects:
         - dialect: ANSI_SQL
           expression: outcome
-      description: Renewed Flat, Renewed Up, Renewed Down, Churned or Active. Based on seats
+      description: Renewed Flat, Renewed Up, Renewed Down, Churned or Active. Based on seats. Set when the contract ends,
+        so every contract still running at the end of the window is Active. Count churn by end_month_id, not start_month_id
       dimension:
         is_time: false
     - name: ae_employee_id

@@ -19,8 +19,8 @@ The build spec is [ACME_DATASET_SPEC.md](ACME_DATASET_SPEC.md).
 
 ## Status
 
-The generator is complete. `validate.py` passes 69 of 71 checks and exits non-zero because of the two
-misses: FY22 NDR and FY23 NDR are each 0.5 points outside the 2-point tolerance.
+The generator is complete. `validate.py` passes 75 of 76 checks and exits non-zero because of one
+miss: FY26 NDR is 0.7 points outside the 2-point tolerance. It is left as natural variation.
 
 ## Setup
 
@@ -35,7 +35,14 @@ config produce identical output. To skip the build, download the zip from
 [Releases](https://github.com/naisan-original/ACME_Analytics_Dataset/releases).
 
 `tools/tune.py` searches config values toward the KPI targets, and `tools/answer_key.py` writes the
-facilitator key from the generated data.
+answer key to `evaluation/` from the generated data.
+
+## Evaluation kit (spoilers)
+
+[`evaluation/`](evaluation/) holds the answer key and a grading rubric with a standard test prompt, for
+scoring how well an analyst or analytics tool finds the story in the data. It gives the answer away, so
+it is kept outside the dataset folder and out of the dataset zip. Don't upload it to the tool you're
+testing. See [evaluation/README.md](evaluation/README.md).
 
 ## Semantic model
 
@@ -60,7 +67,7 @@ See [semantic/README.md](semantic/README.md).
 ## License
 
 - **Code:** [MIT](LICENSE).
-- **Dataset** (the generated CSVs, the data dictionary and the semantic model in `semantic/`): [CC BY 4.0](LICENSE-DATA), Copyright (c) 2026 Naisan.
+- **Dataset** (the generated CSVs, the data dictionary, the semantic model in `semantic/` and the evaluation kit in `evaluation/`): [CC BY 4.0](LICENSE-DATA), Copyright (c) 2026 Naisan.
 - **Source lists in `sources/`:** Wikidata (CC0) and exchange listings (ODC-PDDL-1.0). See [sources/README.md](sources/README.md).
 
 These licenses cover this project's own work only. They grant no rights to any company name or

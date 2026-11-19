@@ -168,7 +168,7 @@ DICTIONARY = {
     "contracts": ("One row per contract. Sum ACV of active contracts to reconcile to central ARR.",
                   {"contract_id": "Primary key", "account_id": "FK to dim_account", "product_id": "FK to dim_product", "contract_type": "New, Renewal or Expansion Add-on",
                    "start_month_id": "First month", "end_month_id": "Last month, which can fall after the data window", "term_months": "Length in months. Add-ons co-term, so they can be short", "seats": "Seats",
-                   "net_price_per_seat_month": "Net price", "acv": "Annual contract value", "outcome": "Renewed Flat, Renewed Up, Renewed Down, Churned or Active. Based on seats", "ae_employee_id": "FK to dim_employee"}),
+                   "net_price_per_seat_month": "Net price", "acv": "Annual contract value", "outcome": "Renewed Flat, Renewed Up, Renewed Down, Churned or Active. Based on seats. Set when the contract ends, so every contract still running at the end of the window is Active. Count churn by end_month_id, not start_month_id", "ae_employee_id": "FK to dim_employee"}),
     "touchpoints": ("Logged customer and prospect interactions.",
                     {"touchpoint_id": "Primary key", "account_id": "FK to dim_account", "employee_id": "FK to dim_employee", "month_id": "FK to dim_month", "touch_date": "Date",
                      "channel": "Call, Email, QBR, Onsite or Support Escalation", "touch_type": "Discovery, Onboarding, Check-in, QBR, Renewal, Expansion or Risk", "sentiment": "-2 to +2", "notes": "Free-text notes"}),

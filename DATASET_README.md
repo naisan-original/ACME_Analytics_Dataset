@@ -17,14 +17,14 @@
 
 | File | Rows | Contents |
 |---|---|---|
-| `fct_account_product_month.csv` | 196,968 | Central fact: account, product and month |
+| `fct_account_product_month.csv` | 197,834 | Central fact: account, product and month |
 | `dim_account.csv` | 15,000 | Accounts |
 | `dim_product.csv` | 4 | Products |
 | `dim_month.csv` | 72 | Calendar, Nov 2020 to Oct 2026. The fiscal year ends Oct 31 |
 | `dim_employee.csv` | 145 | Fictional sales and customer success staff |
-| `user_usage_month.csv` | 1,854,479 | Stratified sample of user activity |
-| `contracts.csv` | 20,275 | Contracts |
-| `touchpoints.csv` | 103,917 | Customer and prospect interactions |
+| `user_usage_month.csv` | 1,786,479 | Stratified sample of user activity |
+| `contracts.csv` | 20,409 | Contracts |
+| `touchpoints.csv` | 103,824 | Customer and prospect interactions |
 | `data_dictionary.md` | | Column definitions and metric formulas |
 | `semantic/` | | Semantic model in Apache Ossie (formerly OSI) format: tables, joins, metrics and AI context. See `semantic/README.md` |
 
@@ -34,6 +34,7 @@
 - **`user_usage_month` is a sample.** Multiply measures by `sample_weight` to estimate full-population totals.
 - **Read "How the tables join" below before you accept automatically detected joins.**
 - **Company names contain commas,** so use a real CSV parser.
+- **Count churn by when it happened, not when the contract started.** `contracts.outcome` is set when a contract ends, so contracts that start in FY26 are almost all still `Active` at the end of the window (Oct 2026). Grouping outcomes by `start_month_id` makes recent churn look like zero. Group by `end_month_id`, or use `churn_flag` and `arr_change_type` in the central fact, or `churn_month_id` in `dim_account`.
 
 ## How the tables join
 

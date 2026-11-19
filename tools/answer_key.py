@@ -1,4 +1,4 @@
-"""Write facilitator/answer_key.md from the generated data (spec Section 10).
+"""Write evaluation/answer_key.md from the generated data (spec Section 10).
 
 Usage: uv run python tools/answer_key.py
 Every number comes from the CSVs, so the key always matches the current output.
@@ -101,10 +101,51 @@ def main():
     count = int((ever & is_ai).sum())
     fy24_share = arr[is_ai, 47].sum() / arr[:, 47].sum()
 
+    bands = ["$200M-2B", "$2-10B", "$10-50B", "$50B+"]
+    revenue_band = accounts["annual_revenue_band"].to_numpy()
+    sub_industry = accounts["sub_industry"].to_numpy()
+    tech_customers = ever & high_tech
+    membership = pd.crosstab(sub_industry[tech_customers], revenue_band[tech_customers], values=is_ai[tech_customers], aggfunc="mean")
+    membership = (membership[bands] * 100).round(0).fillna(0).astype(int).astype(str) + "%"
+    membership = membership.reset_index().rename(columns={"row_0": "Sub-industry"})
+    core = np.isin(sub_industry, cfg["ai_forward"]["sub_industries"])
+    precision = is_ai[tech_customers & core].mean()
+    recall = (is_ai & core).sum() / is_ai.sum()
+
+    pivot = pd.read_csv(Path(cfg["paths"]["facilitator_dir"]) / "pivot_truth.csv").merge(accounts[["account_id", "annual_revenue_band"]])
+    last = month_ids.index(202610)
+    work = fact[fact["month_id"] == 202610]
+    work = work[work["work_units"] > 0].groupby("account_id").apply(lambda g: np.average(g["api_share"], weights=g["work_units"]), include_groups=False)
+    api_now = pd.Series(ids).map(work).to_numpy()
+    gradient_rows = []
+    for band in bands:
+        in_band = revenue_band == band
+        tech_band = high_tech & in_band
+        hidden_band = is_ai & in_band
+        base = tech_band & (arr[:, last - 12] > 0)
+        hidden_base = hidden_band & (arr[:, last - 12] > 0)
+        onsets = pivot.loc[pivot["annual_revenue_band"] == band, "onset_month"]
+        gradient_rows.append({
+            "Revenue band": band,
+            "High Tech FY26 GRR": round(retention(arr, 5, tech_band)[0], 1),
+            "High Tech FY26 logo churn": f"{(arr[base, last] == 0).mean():.0%}",
+            "High Tech median API share, Oct 2026": f"{np.nanmedian(api_now[tech_band & (arr[:, last] > 0)]):.0%}",
+            "Hidden: median pivot onset": months.iloc[int(onsets.median())]["month_id"] if len(onsets) else "",
+            "Hidden: FY26 logo churn": f"{(arr[hidden_base, last] == 0).mean():.0%}" if hidden_base.any() else "",
+        })
+    gradient = pd.DataFrame(gradient_rows)
+
+    contracts = pd.read_csv(folder / "contracts.csv")
+    fiscal = months.set_index("month_id")["fiscal_year"]
+    churned = contracts[contracts["outcome"] == "Churned"]
+    by_start = churned["start_month_id"].map(fiscal).value_counts().reindex(sorted(fiscal.unique()), fill_value=0)
+    by_end = churned["end_month_id"].map(fiscal).value_counts().reindex(sorted(fiscal.unique()), fill_value=0)
+    trap = pd.DataFrame({"FY": by_end.index, "Churned contracts by start year (wrong)": by_start.values, "Churned contracts by end year (right)": by_end.values})
+
     lines = [
         "# ACME Analytics dataset: facilitator answer key",
         "",
-        "**Not part of the dataset. Do not share with participants.** All numbers come from the generated output.",
+        "**Spoiler. Kept outside the dataset folder on purpose: don't give this file to the analyst or tool under test.** All numbers come from the generated output.",
         "",
         "## The story in five sentences",
         "",
@@ -117,9 +158,12 @@ def main():
         "## Hidden segment definition",
         "",
         f"- {count} customers, {count / ever.sum():.1%} of all customers ever, and {fy24_share:.1%} of FY24 ARR.",
-        f"- All High Tech, in {', '.join(cfg['ai_forward']['sub_industries'])}. They are {count / ever_tech:.0%} of High Tech customers, so High Tech alone is only a partial signal.",
+        f"- All High Tech. They are {count / ever_tech:.0%} of High Tech customers, so High Tech alone is only a partial signal.",
+        f"- Membership is a random draw, weighted by sub-industry and company size. {precision:.0%} of {', '.join(cfg['ai_forward']['sub_industries'])} customers are in the segment, and those three sub-industries hold {recall:.0%} of it. Sub-industry is a strong clue, not a label. Share of High Tech customers in the segment:",
+        "", markdown_table(membership), "",
+        "- Smaller companies adopt first. They are more likely to be in the segment and move through the pivot faster, and the largest accounts start it last. Many small accounts landed late, so their median onset is not the earliest, but they are hit hardest by FY26. The damage shows up as a gradient by revenue band.",
         "- Pivot onset is staggered from Q3 FY24 through Q2 FY26. After onset, API share climbs from about 5% to over 90%, Service Accounts appear, and human Creators and Explorers fade.",
-        "- The label exists only in `segment_truth.csv`, and `pivot_truth.csv` has each account's onset. No single dataset column encodes it.",
+        "- The label exists only in `facilitator/segment_truth.csv` (not published), and `pivot_truth.csv` has each account's onset. No single dataset column encodes it.",
         "",
         "## KPI results",
         "",
@@ -136,8 +180,13 @@ def main():
         f"6. **Look at product mix. Analytics is falling:** in the hidden segment, Analytics active users went from {analytics_users[0]:,} at FY24 end to {analytics_users[1]:,} at FY26 end, and seats from {analytics_seats[0]:,} to {analytics_seats[1]:,}.",
         f"7. **Look at API share and Service Account users:** Service Accounts seen in the hidden segment went from {service_growth[0]:,} to {service_growth[1]:,} between FY24 end and FY26 end.", "", markdown_table(share), "",
         f"8. **Read the touchpoint notes:** {len(hits):,} notes mention programmatic or agent themes, and {hit_rate:.0%} belong to hidden-segment accounts. The rest are deliberate noise, so text search is evidence and not proof.",
-        f"9. **Seat compression explains it:** Data Engine work units in the hidden segment moved from {engine_work[0]:,} to {engine_work[1]:,} while its ARR moved from ${engine_arr[0] / 1e6:.1f}M to ${engine_arr[1] / 1e6:.1f}M. Survivorship matters here, because churned accounts leave both totals.",
+        "9. **Slice High Tech by company size. Smaller companies moved first:** the hidden columns use the label, the rest are visible to an analyst.", "", markdown_table(gradient), "",
+        f"10. **Seat compression explains it:** Data Engine work units in the hidden segment moved from {engine_work[0]:,} to {engine_work[1]:,} while its ARR moved from ${engine_arr[0] / 1e6:.1f}M to ${engine_arr[1] / 1e6:.1f}M. Survivorship matters here, because churned accounts leave both totals.",
         "",
+        "## Trap: counting churn by contract start date",
+        "",
+        "`contracts.outcome` is set when a contract ends, so contracts that start in FY26 are almost all still `Active` at the end of the window. Grouping churned contracts by start year makes recent churn look like zero. Churn runs right to the last month.",
+        "", markdown_table(trap), "",
         "## Example questions and expected answers",
         "",
         f"1. What was ARR at the end of FY26? **${overall.iloc[5]['arr_m']}M**",
@@ -148,6 +197,8 @@ def main():
         f"6. Did EMEA recover after its FY25 soft patch? **{'Yes' if emea_dips and emea_recovers else 'No'}, once High Tech is excluded: {emea['FY25 excl. High Tech']}% in FY25 and {emea['FY26 excl. High Tech']}% in FY26.** Whole-region GRR, which includes High Tech, was {emea['FY25 GRR']}% and {emea['FY26 GRR']}%.",
         f"7. What is GRR without the problem accounts? **FY26 GRR of {rest.iloc[5]['grr']}% and NDR of {rest.iloc[5]['ndr']}%** using the hidden label. An analyst approximates this by excluding High Tech accounts with high API share.",
         "8. Why does activity rise while revenue falls? **Agents make API calls that do not consume seats, and pricing is per seat.**",
+        f"9. Which High Tech companies were hit first? **The smallest: High Tech FY26 GRR is {gradient.iloc[0]['High Tech FY26 GRR']}% in the {bands[0]} band against {gradient.iloc[3]['High Tech FY26 GRR']}% in {bands[3]}.**",
+        f"10. Was there churn in FY26? **Yes, the most of any year: {by_end.iloc[-1]:,} churned contracts ending in FY26.** None appear by start year because those contracts have not ended yet.",
         "",
         "## Charts to expect",
         "",
@@ -159,7 +210,7 @@ def main():
         "- Average touchpoint sentiment falling for those accounts roughly two quarters before contraction.",
         "",
     ]
-    path = Path(cfg["paths"]["facilitator_dir"]) / "answer_key.md"
+    path = Path(cfg["paths"]["evaluation_dir"]) / "answer_key.md"
     path.write_text("\n".join(lines), encoding="utf-8")
     print(f"wrote {path}")
     print(f"products in dataset: {len(products)}")

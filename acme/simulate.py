@@ -80,10 +80,18 @@ def select_customers(cfg, accounts, rng):
     return chosen, since
 
 
+def adoption_probability(cfg, accounts):
+    """Per-account odds of being AI-forward: high in the core sub-industries, lower for larger companies."""
+    adoption = cfg["ai_forward"]["adoption"]
+    sub = accounts["sub_industry"].map(adoption["sub_industry_weight"]).fillna(0.0).to_numpy()
+    size = accounts["annual_revenue_band"].map(adoption["revenue_band_weight"]).fillna(0.0).to_numpy()
+    high_tech = (accounts["industry"] == "High Tech").to_numpy()
+    return np.where(high_tech, np.minimum(adoption["max_prob"], adoption["scale"] * sub * size), 0.0)
+
+
 def assign_ai_forward(cfg, accounts, chosen, since, rng):
-    ai = cfg["ai_forward"]
-    eligible = chosen & accounts["sub_industry"].isin(ai["sub_industries"]).to_numpy() & (since <= ai["last_landing_month"])
-    return eligible & (rng.random(len(accounts)) < ai["conversion_rate"])
+    eligible = chosen & (since <= cfg["ai_forward"]["last_landing_month"])
+    return eligible & (rng.random(len(accounts)) < adoption_probability(cfg, accounts))
 
 
 def draw_land_acv(cfg, rng, segment, fy, is_ai):
@@ -287,10 +295,12 @@ def run(cfg, accounts, ae_matrix, disrupted, chosen, since, is_ai, calendar):
         account.grower = rng.random() < renewal_cfg["grower_share"]
         account.origin = account.since
         if account.is_ai:
-            draw = rng.beta(*ai["onset_beta"])
+            band = row["annual_revenue_band"]
+            draw = rng.beta(*ai["onset_beta_by_band"][band])
             account.onset = int(ai["onset_start"] + draw * (ai["onset_end"] - ai["onset_start"]))
             account.onset = max(account.onset, account.since + ai["min_months_before_onset"])
-            account.pivot_months = int(rng.integers(ai["pivot_months"][0], ai["pivot_months"][1] + 1))
+            low, high = ai["pivot_months_by_band"][band]
+            account.pivot_months = int(rng.integers(low, high + 1))
             account.t80 = month_share_reaches(cfg, account, 0.80)
 
         fy = fiscal_index(account.since)

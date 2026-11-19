@@ -33,7 +33,7 @@ Ossie metrics are single aggregate expressions. Three things in this dataset nee
 
 1. **Snapshot measures.** ARR, MRR, seats and active users can't be added up across months, and Ossie has no "last value in period" aggregation. The model provides `fiscal_year_end_arr`, `fiscal_quarter_end_arr` and `fiscal_year_end_customers`, which read only the period's last month. For other periods, filter to one month.
 2. **GRR and NDR** compare each account with itself 12 months earlier, which no single aggregate can do. Use the SQL below.
-3. **Active contracts in a month** need a range join (`start_month_id <= month <= end_month_id`). The `contracts` relationship to `dim_month` uses the start month, so it slices bookings.
+3. **Active contracts in a month** need a range join (`start_month_id <= month <= end_month_id`). The `contracts` relationship to `dim_month` uses the start month, so it slices bookings. Don't use it to count churn: `outcome` is set when a contract ends, so recent contracts are mostly still `Active`. Group churned contracts by `end_month_id`, or use `churn_flag` in the central fact.
 
 ### GRR and NDR
 

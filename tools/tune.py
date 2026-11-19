@@ -53,8 +53,9 @@ def score(cfg, arr, is_ai, contracts, table):
     emea = (table["region"] == "EMEA").to_numpy()
     plain = emea & ~tech
     grr = [metrics.retention(arr, fy, plain)[0] for fy in (3, 4, 5)]
-    total += max(grr[1] + 1.5 - grr[0], 0) ** 2 * 2
-    total += max(grr[1] + 1.5 - grr[2], 0) ** 2 * 2
+    # The EMEA red herring must dip and recover, so weight it heavily.
+    total += max(grr[1] + 1.5 - grr[0], 0) ** 2 * 8
+    total += max(grr[1] + 1.5 - grr[2], 0) ** 2 * 8
     first = (arr > 0).argmax(axis=1)
     ever = (arr > 0).any(axis=1)
     def emea_share(low, high):
